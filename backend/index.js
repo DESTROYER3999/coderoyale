@@ -25,24 +25,22 @@ function exec_code(info, callback) {
     ls.stdin.write(info.stdin);
     ls.stdin.end();
     let result = {
-        stdout: null,
-        stderr: null,
+        stdout: "",
+        stderr: "",
         error: null,
         code: null
     };
 
     ls.stdout.on("data", data => {
-        result.stdout = data.toString();
+        result.stdout += data.toString();
     });
     
     ls.stderr.on("data", data => {
-        result.stderr = data.toString();
+        result.stderr += data.toString();
     });
     
     ls.on("error", (error) => {
         result.error = error.message;
-        console.log("SET ERR")
-        console.log(result.error);
     });
     
     ls.on("close", code => {
