@@ -1,23 +1,40 @@
 const socket = io();
 
-// const runButton = document.getElementById("run-btn");
+const runButton = document.getElementById("run-btn");
 const outputArea = document.getElementById("output");
 const leftDiv  = document.getElementById("left");
 const rightDiv = document.getElementById("right");
-const monacoEditor = document.getElementById('monaco-container')
-
+const monacoEditor = document.getElementById('monaco-container');
+const contentDiv = document.getElementById("maincontent");
+const mdeElement = document.getElementById("simplemde-editor");
 // const inputArea = document.getElementById("input");
-// runButton.addEventListener("click", run_clicked);
+runButton.addEventListener("click", run_clicked);
 
 require.config({ paths: { vs: 'monaco-editor/min/vs' } });
+
+const editMde = new SimpleMDE({
+    element: mdeElement,
+    spellChecker: false,
+    status: false,
+    hideIcons: ['guide', 'fullscreen', 'side-by-side', "image"]
+});
+  
 
 let editor;
 require(['vs/editor/editor.main'], function () {
     editor = monaco.editor.create(monacoEditor, {
         value: "",
         language: 'python',
-        automaticLayout: true
+        automaticLayout: true,
+        theme: "vs-dark",
+        fontSize: "14px",
+        minimap: {
+            enabled: false
+        },
+        lineNumbersMinChars: 3,
+        lineDecorationsWidth: 3
     });
+
     // window.onresize = function () {
     //     editor.layout();
     // };
@@ -47,7 +64,7 @@ function run_clicked() {
     outputArea.value = "";
     socket.emit("execute", {
         "code": editor.getValue(),
-        "stdin": inputArea.value
+        "stdin": ""
     }, handle_result)
 }
 
@@ -91,19 +108,14 @@ function dragElement(element, direction) {
         var delta = {x: e.clientX - md.e.clientX,
                      y: e.clientY - md.e.clientY};
 
-        if (direction == "H" ) // Horizontal
+        if (direction == "H" )
         {
-            // Prevent negative-sized elements
-            delta.x = Math.min(Math.max(delta.x, -md.firstWidth), md.secondWidth);
+            contentDiv.style.gridTemplateColumns = (md.offsetLeft + delta.x) + "px 5px 1fr";
+        
 
-            element.style.left = md.offsetLeft + delta.x + "px";
-            leftDiv.style.width = (md.firstWidth + delta.x) + "px";
-            rightDiv.style.width = (md.secondWidth - delta.x) + "px";
         } else if (direction == "V") {
-            console.log(delta.y, md.firstHeight)
-            element.style.top = (md.offsetTop +  delta.y) + "px";
-            // monacoEditor.style.height = (md.firstHeight + delta.y) + "px";
-            // outputArea.style.height = (md.secondHeight + delta.y) + "px";
+
+            rightDiv.style.gridTemplateRows = (md.firstHeight + delta.y) + "px 5px 1fr";
         }
     }
 }
