@@ -11,7 +11,7 @@
 		<!-- <h2 class="title">Python interpreter online!</h2> -->
 		<div class="content-container" id="maincontent">
 			<div class="left">
-				<div class="window">
+				<div class="window top">
 					<div class="controls-container">
 						<button class="tab selected"><span>Challenge Information</span></button>
 						<button class="tab"><span>Sample Test Cases</span></button>
@@ -21,25 +21,30 @@
 					<div class="pages">
 						<div class="challenge-information selected">
 							<div>
-								<textarea id="simplemde-editor"></textarea>
+								<div id="simplemde-editor">Simple MDE Editor</div>
+								<!-- <textarea id="simplemde-editor"></textarea> -->
 							</div>
 						</div>
 						<div class="sample-test-cases">
-							<div class="monaco-editor" id="sample-tests-monaco-container"></div>
+							<div class="monaco-editor" id="sample-tests-monaco-container">Sample Tests Monaco Editor</div>
 							<div class="lower-controls">
 								<button id="run-sample-tests-code">Run</button>
 							</div>
 						</div>
 						<div class="submission-test-cases">
-							<div class="monaco-editor" id="submission-tests-monaco-container"></div>
+							<div class="monaco-editor" id="submission-tests-monaco-container">Submission Tests monaco editor</div>
 							<div class="lower-controls">
 								<button id="run-submission-tests-code">Run</button>
 
 							</div>
 						</div>
 					</div>
+				</div>
+				
+				<div class="window bottom">
 
 				</div>
+				
 			</div>
 			<div class="seperator" id="vertical-seperator"></div>
 			<div class="right">
@@ -49,7 +54,7 @@
 					</div>
 					<div class="pages">
 						<div class="selected">
-							<div class="monaco-editor" id="editor-monaco-container"></div>
+							<div class="monaco-editor" id="editor-monaco-container">Python code monaco editor</div>
 							<div class="lower-controls" id="lower-monaco-controls">
 								<button id="run-button">Run Code</button>
 								<button id="test-button">Run Sample Tests</button>
@@ -66,7 +71,8 @@
 					</div>
 					<div class="pages">
 						<div class="selected">
-							<textarea id="output" rows="1" readonly></textarea>
+							<div id="output">Output of code</div>
+							<!-- <textarea id="output" rows="1" readonly></textarea> -->
 						</div>
 					</div>
 				</div>

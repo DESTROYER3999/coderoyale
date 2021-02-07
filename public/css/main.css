@@ -13,17 +13,12 @@ html {
     height: 100%;
 }
 
-
-textarea {
-    font-family: Consolas, "Courier New", monospace; 
-    font-weight: normal;
-    font-size: 16px;
-    line-height: 22px;
-    letter-spacing: 0px;
-    background-color: #1e1e1e;
-    outline: none;
-    resize: none;
-    color: #d4d4d4;
+.content-container {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: 1fr;
 }
 
 .left {
@@ -49,6 +44,20 @@ textarea {
     border-top-right-radius: 6px;
 }
 
+
+
+textarea {
+    font-family: Consolas, "Courier New", monospace; 
+    font-weight: normal;
+    font-size: 16px;
+    line-height: 22px;
+    letter-spacing: 0px;
+    background-color: #1e1e1e;
+    outline: none;
+    resize: none;
+    color: #d4d4d4;
+}
+
 .window {
     display: grid;
     height: auto;
@@ -59,9 +68,7 @@ textarea {
     overflow: hidden;
 
 }
-.right:last-child {
-    /* grid-template-rows: 1fr auto 1fr; */
-}
+
 
 .controls-container {
     padding-top: 5px;
@@ -76,6 +83,12 @@ textarea {
     display: flex;
     justify-content: flex-start;
 }
+
+.right:last-child {
+    /* grid-template-rows: 1fr auto 1fr; */
+}
+
+
 .controls-container button:last-of-type {
     margin-right: 0px;
 }
@@ -115,7 +128,7 @@ textarea {
 #output {
     border: none;
     /* height: 100%; */
-    padding: 5px;
+    /* padding: 5px; */
     display: block;
     /* margin: 0px;
     width: auto;
@@ -136,6 +149,7 @@ textarea {
     width: 200px;
     height: 33px;
     display: block;
+    cursor: default!important;
 
     background-color: #323232;
     z-index: 10;
@@ -144,10 +158,10 @@ textarea {
 
 .monaco-editor {
     position: relative;
-    padding-top: 5px;
+    /* padding-top: 5px; */
 }
 
-.monaco-editor::before {
+/* .monaco-editor::before {
     content: "";
     display: block;
     height: 5px;
@@ -155,7 +169,7 @@ textarea {
     width: 100%;
     position: absolute;
     top: 0px;
-}
+} */
 
 .tab > span {
     /* align-self: center; */
@@ -208,7 +222,7 @@ button:hover {
 
 #submit-button {
     background-color: #0f7a01;
-    border: 1px solid #000000;
+    border: 1px solid #094900;
     color: #151515;
 
 }
@@ -243,15 +257,6 @@ button:active {
     grid-row: 2;
     cursor: row-resize;
 
-}
-
-
-.content-container {
-    display: grid;
-    width: 100%;
-    height: 100%;
-    grid-template-columns: 1fr auto 1fr;
-    grid-template-rows: 1fr;
 }
 
 

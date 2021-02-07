@@ -11,4 +11,5 @@ class ExampleTests(cr_test.TestGroup):
     def test_3(self):
         self.assert_equal(self, sum_double("2 2"), 8)
 
+
 cr_test.run()

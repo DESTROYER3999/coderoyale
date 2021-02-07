@@ -16,7 +16,7 @@ const outputDiv = document.getElementById("output-window");
 const lowerMonacoControlsDiv = document.getElementById("lower-monaco-controls");
 const sampleTestsMonacoContainer = document.getElementById("sample-tests-monaco-container");
 const submissionTestsMonacoContainer = document.getElementById("submission-tests-monaco-container");
-window.addEventListener("resize", content_layout);
+// window.addEventListener("resize", content_layout);
 
 
 // Make more organized controls button system later
@@ -106,64 +106,64 @@ cr_test.run()
 
 `
 
-const editMde = new SimpleMDE({
-    initialValue: challengeDescriptionDefault,
-    element: mdeElement,
-    spellChecker: false,
-    status: false,
-    hideIcons: ['guide', 'fullscreen', 'side-by-side'],
-    showIcons: ["code", "strikethrough", "table", "horizontal-rule"]
+// const editMde = new SimpleMDE({
+//     initialValue: challengeDescriptionDefault,
+//     element: mdeElement,
+//     spellChecker: false,
+//     status: false,
+//     hideIcons: ['guide', 'fullscreen', 'side-by-side'],
+//     showIcons: ["code", "strikethrough", "table", "horizontal-rule"]
 
-});
+// });
 
 
-let monacoEditors = [];
-function create_monaco_editor(container, callback=null) {
-    require(['vs/editor/editor.main'], function () {
-        monaco.editor.defineTheme('my-dark', {
-            base: 'vs-dark', 
-            inherit: true,
-            rules: [{ background: '#444444' }],
-            colors: {
-                "editor.foreground": "#aaaaaa",
-                "editor.background": '#444444',
-                "editor.lineHighlightBorder": "white"
-            }
-        });
-        let defaultValue;
-        if (monacoEditors.length == 0) {
-            defaultValue = monacoEditorDefault;
-        } else if (monacoEditors.length == 1) {
-            defaultValue = monacoSampleTestDefault;
-        } else if (monacoEditors.length == 2) {
-            defaultValue = monacoSubmissionTestDefault;
-        }
-        let editor = monaco.editor.create(container, {
-            value: defaultValue,
-            language: 'python',
-            automaticLayout: false,
-            theme: "vs-dark",
-            fontSize: "16px",
-            minimap: {
-                enabled: false
-            },
-            lineNumbersMinChars: 3,
-            lineDecorationsWidth: 3
-        });
-        editor.container = container;
-        monacoEditors.push(editor);
-        if (callback) {
-            return callback();
-        }
-    });
-}
+// let monacoEditors = [];
+// function create_monaco_editor(container, callback=null) {
+//     require(['vs/editor/editor.main'], function () {
+//         monaco.editor.defineTheme('my-dark', {
+//             base: 'vs-dark', 
+//             inherit: true,
+//             rules: [{ background: '#444444' }],
+//             colors: {
+//                 "editor.foreground": "#aaaaaa",
+//                 "editor.background": '#444444',
+//                 "editor.lineHighlightBorder": "white"
+//             }
+//         });
+//         let defaultValue;
+//         if (monacoEditors.length == 0) {
+//             defaultValue = monacoEditorDefault;
+//         } else if (monacoEditors.length == 1) {
+//             defaultValue = monacoSampleTestDefault;
+//         } else if (monacoEditors.length == 2) {
+//             defaultValue = monacoSubmissionTestDefault;
+//         }
+//         let editor = monaco.editor.create(container, {
+//             value: defaultValue,
+//             language: 'python',
+//             automaticLayout: false,
+//             theme: "vs-dark",
+//             fontSize: "16px",
+//             minimap: {
+//                 enabled: false
+//             },
+//             lineNumbersMinChars: 3,
+//             lineDecorationsWidth: 3
+//         });
+//         editor.container = container;
+//         monacoEditors.push(editor);
+//         if (callback) {
+//             return callback();
+//         }
+//     });
+// }
 
-create_monaco_editor(editorMonacoContainer);
-create_monaco_editor(sampleTestsMonacoContainer);
-create_monaco_editor(submissionTestsMonacoContainer, () => {
-    window.addEventListener("resize", editor_layout);
-    editor_layout(0);    
-});
+// create_monaco_editor(editorMonacoContainer);
+// create_monaco_editor(sampleTestsMonacoContainer);
+// create_monaco_editor(submissionTestsMonacoContainer, () => {
+//     window.addEventListener("resize", editor_layout);
+//     editor_layout(0);    
+// });
 
 
 function editor_layout() {
@@ -394,22 +394,13 @@ function handle_drag_seperator(seperator, parent, direction) {
 
             parent.style.gridTemplateRows = `1fr auto ${newWidth}px`
         }
-        // console.log(delta);
-        // console.log(`${mouseDownEvent.offsetLeft + delta.x}px auto 1fr`, ":::", parent.style.gridTemplateColumns);
-        // if (direction == "V" )
-        // {
-        //     contentDiv.style.gridTemplateColumns = (md.offsetLeft + delta.x) + "auto 1fr";
-        //     // rightDiv.style.gridTemplateColumns = "1px " + (md.offsetLeft - delta.x) + "px";
-        // } else if (direction == "H") {
-        //     rightDiv.style.gridTemplateRows = (md.firstHeight + delta.y) + "px 1px 1fr";
-            
-        // }
-        editor_layout();
+
+        // editor_layout();
     }
 }
 
-handle_drag_seperator(verticalSeperator, contentDiv, "V");
-handle_drag_seperator(horizontalSeperator, rightDiv, "H");
+// handle_drag_seperator(verticalSeperator, contentDiv, "V");
+// handle_drag_seperator(horizontalSeperator, rightDiv, "H");
 
 for (let window of windows) {
     const controlsDiv = window.children[0];
@@ -424,7 +415,7 @@ for (let window of windows) {
             }
             tabs[i].classList.add("selected");
             pages[i].classList.add("selected");
-            editor_layout();
+            // editor_layout();
         })
     }
 }

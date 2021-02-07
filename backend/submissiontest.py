@@ -12,7 +12,6 @@ def actual_solution(numStr):
 randomInputs = []
 for x in range(100):
     randomInputs.append(f"{random.randint(1, 20)} {random.randint(1, 20)}")
-print(randomInputs)
 
 class SubmissionTests(cr_test.TestGroup):
     def test_random_inputs(self):
@@ -21,6 +20,6 @@ class SubmissionTests(cr_test.TestGroup):
                                 sum_double(randomInput), 
                                 actual_solution(randomInput)
                             )
-
-cr_test.run()
+print(randomInputs)
+# cr_test.run()
 
