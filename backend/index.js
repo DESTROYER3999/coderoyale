@@ -12,18 +12,23 @@ const io = socketio(server);
 // Set static folder
 app.use(express.static("public"));
 
-function run_tests() {
-    
+function run_tests(callback) {
+    exec_code("test.py", (result) => {
+        console.log("RESULT OF TESTS IS HERE::", result)
+        return callback(result);
+    })
 }
 
-function exec_code(info, callback) {
-    fs.writeFile(__dirname + "\\solution.py", info.code, (error) => {
-        if (error) return console.log(error);
-        console.log("Written to file!");
+function write_file(code, filename, callback) {
+    fs.writeFile(__dirname + "\\" + filename, code, (error) => {
+        return callback(error);
     });
-    const ls = spawn("python", [__dirname + "\\solution.py"]);
-    ls.stdin.write(info.stdin);
-    ls.stdin.end();
+}
+
+function exec_code(file, callback) {
+    const ls = spawn("python", [__dirname + "\\" + file]);
+    // ls.stdin.write(info.stdin);
+    // ls.stdin.end();
     let result = {
         stdout: "",
         stderr: "",
@@ -58,14 +63,55 @@ io.on("connection", (socket) => {
 
     socket.on("execute", (info, callback) => {
         console.log("Got excecute msg.", info);
-        exec_code(info, (result) => {
-            callback(result);
-            console.log("Sent result back to client.");
+        write_file(info.code, "solution.py", (error) => {
+            if (error) return console.log(error);
+            exec_code("solution.py", (result) => {
+                callback(result);
+                console.log("Sent result back to client.");
+            });
+
+        });
+
+    })
+
+    socket.on("execute sample tests code", (info, callback) => {
+        console.log("SAMPLE TESTS")
+        write_file(info.code, "sampletest.py", (error) => {
+            if (error) return console.log(error);
+            exec_code("sampletest.py", (result) => {
+                callback(result);
+                console.log("Sent result back to client.");
+            });
+
+        });
+
+    })
+
+    socket.on("execute submission tests code", (info, callback) => {
+        console.log("SOLUTIN TEESTS")
+        write_file(info.code, "submissiontest.py", (error) => {
+            if (error) return console.log(error);
+            exec_code("submissiontest.py", (result) => {
+                callback(result);
+                console.log("Sent result back to client.");
+            });
+
+        });
+
+    })
+
+    socket.on("execute sample tests", (info, callback) => {
+        write_file(info.code, "solution.py", (error) => {
+            if (error) return console.log(error);
+            write_file(info.sampleTests, "test.py", (error) => {
+                if (error) return console.log(error);
+                
+            })
         })
-
-
-        
-
+        run_tests((result) => {
+            console.log("RESULT OF TESTS", result)
+            callback(result);
+        })
     })
 })
 

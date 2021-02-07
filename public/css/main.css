@@ -86,12 +86,24 @@ textarea {
 .pages > div {
     display: none;
     height: 100%;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
 }
 
 .pages > div.selected {
     display: flex;
     flex-direction: column;
+    display: grid;
 }
+
+.lower-controls {
+    /* padding-top: 1px; */
+    display: flex;
+    padding-bottom: 5px;
+    flex-wrap: wrap;
+    border-top: 1px solid #555;
+}
+
 
 .challenge-info {
     height: 100%;
@@ -102,7 +114,7 @@ textarea {
 
 #output {
     border: none;
-    height: 100%;
+    /* height: 100%; */
     padding: 5px;
     display: block;
     /* margin: 0px;
@@ -119,6 +131,7 @@ textarea {
     border-bottom-left-radius: 0px;
     border-bottom-right-radius: 0px;
     border-bottom: none;
+    margin: 0px;
     margin-right: 5px;
     width: 200px;
     height: 33px;
@@ -128,12 +141,13 @@ textarea {
     z-index: 10;
 }
 
-#monaco-container {
-    /* padding-top: 5px; */
-    /* margin-top: 5px; */
+
+.monaco-editor {
     position: relative;
+    padding-top: 5px;
 }
-/* #monaco-container::before {
+
+.monaco-editor::before {
     content: "";
     display: block;
     height: 5px;
@@ -141,7 +155,7 @@ textarea {
     width: 100%;
     position: absolute;
     top: 0px;
-} */
+}
 
 .tab > span {
     /* align-self: center; */
@@ -166,9 +180,13 @@ textarea {
 
 
 button {
-    width: 60px;
+    width: 180px;
     height: 30px;
     padding: 0px;
+    /* margin-top: 5px; */
+    margin: 5px;
+    margin-right: 0px;
+    margin-bottom: 0px;
     background-color: #444444;
     outline: none;
     border: 1px solid #555555;
@@ -179,18 +197,22 @@ button {
 
 
 
+
 button:hover {
     cursor: pointer;
     background-color: #3a3a3a;
 }
+#run-button {
+    
+}
 
-#run-btn {
+#submit-button {
     background-color: #0f7a01;
     border: 1px solid #000000;
     color: #151515;
 
 }
-#run-btn:hover {
+#submit-button:hover {
     background-color: #0d6901;
 
 }
@@ -234,7 +256,7 @@ button:active {
 
 
 #output.error {
-    color: #ff0000;
+    color: #f44747;
 }
 
 

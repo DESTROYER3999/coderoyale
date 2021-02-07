@@ -14,17 +14,28 @@
 				<div class="window">
 					<div class="controls-container">
 						<button class="tab selected"><span>Challenge Information</span></button>
-						<button class="tab"><span>Test Cases</span></button>
+						<button class="tab"><span>Sample Test Cases</span></button>
+						<button class="tab"><span>Sumbission Test Cases</span></button>
 
 					</div>
 					<div class="pages">
 						<div class="challenge-information selected">
-							<textarea id="simplemde-editor"></textarea>
+							<div>
+								<textarea id="simplemde-editor"></textarea>
+							</div>
 						</div>
-						<div class="test-cases">
-							<h1>Welcome to the test cases!</h1>
-							<p>Sample test cases:</p>
-							<p>Submission test cases:</p>
+						<div class="sample-test-cases">
+							<div class="monaco-editor" id="sample-tests-monaco-container"></div>
+							<div class="lower-controls">
+								<button id="run-sample-tests-code">Run</button>
+							</div>
+						</div>
+						<div class="submission-test-cases">
+							<div class="monaco-editor" id="submission-tests-monaco-container"></div>
+							<div class="lower-controls">
+								<button id="run-submission-tests-code">Run</button>
+
+							</div>
 						</div>
 					</div>
 
@@ -37,7 +48,15 @@
 						<button class="tab selected"><span>Python Editor</span></button>
 					</div>
 					<div class="pages">
-						<div class="selected" id="monaco-container"></div>
+						<div class="selected">
+							<div class="monaco-editor" id="editor-monaco-container"></div>
+							<div class="lower-controls" id="lower-monaco-controls">
+								<button id="run-button">Run Code</button>
+								<button id="test-button">Run Sample Tests</button>
+								<button id="sumbission-test-button">Run Submission Tests</button>
+								<button id="submit-button">Submit</button>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="seperator" id="horizontal-seperator"></div>
@@ -47,7 +66,7 @@
 					</div>
 					<div class="pages">
 						<div class="selected">
-							<textarea id="output" rows="1"></textarea>
+							<textarea id="output" rows="1" readonly></textarea>
 						</div>
 					</div>
 				</div>

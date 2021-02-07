@@ -18,7 +18,7 @@ class TestGroup(object):
         func_name = inspect.getframeinfo(sys._getframe().f_back.f_back)[2]
         TestGroup.results[cls.__name__][func_name] = {**{
             "assertion": assertion,
-            "result": result
+            "result": str(result)
         }, **kwargs}
 
     @staticmethod
@@ -84,4 +84,4 @@ class TestGroup(object):
 
 
 def run():
-    TestGroup.run()
+    print(TestGroup.run())
