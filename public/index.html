@@ -10,24 +10,47 @@
 	<body>
 		<!-- <h2 class="title">Python interpreter online!</h2> -->
 		<div class="content-container" id="maincontent">
-			<div class="left" id="left">
-				<div class="challenge-info">
-					<textarea id="simplemde-editor"></textarea>
-				</div>
-			</div>
+			<div class="left">
+				<div class="window">
+					<div class="controls-container">
+						<button class="tab selected"><span>Challenge Information</span></button>
+						<button class="tab"><span>Test Cases</span></button>
 
-			<div class="seperator" id="vertical-seperator">
-				<div class="seperator-inner" id="vertical-seperator-inner"></div>
-			</div>
-			<div class="controls-container">
-				<button class="controls-btn" id="run-btn">Run</button>
-			</div>
-			<div class="right" id="right">
-				<div id="monaco-container"></div>
-				<div class="seperator" id="horizontal-seperator">
-					<div class="seperator-inner" id="horizontal-seperator-inner"></div>
+					</div>
+					<div class="pages">
+						<div class="challenge-information selected">
+							<textarea id="simplemde-editor"></textarea>
+						</div>
+						<div class="test-cases">
+							<h1>Welcome to the test cases!</h1>
+							<p>Sample test cases:</p>
+							<p>Submission test cases:</p>
+						</div>
+					</div>
+
 				</div>
-				<textarea id="output" readonly></textarea>
+			</div>
+			<div class="seperator" id="vertical-seperator"></div>
+			<div class="right">
+				<div class="window">
+					<div class="controls-container">
+						<button class="tab selected"><span>Python Editor</span></button>
+					</div>
+					<div class="pages">
+						<div class="selected" id="monaco-container"></div>
+					</div>
+				</div>
+				<div class="seperator" id="horizontal-seperator"></div>
+				<div class="window" id="output-window">
+					<div class="controls-container">
+						<button class="tab selected"><span>Output</span></button>
+					</div>
+					<div class="pages">
+						<div class="selected">
+							<textarea id="output" rows="1"></textarea>
+						</div>
+					</div>
+				</div>
 			</div>
 
 

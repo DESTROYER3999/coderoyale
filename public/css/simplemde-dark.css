@@ -35,6 +35,14 @@
     border-left: 1px solid silver
 }
 
+.CodeMirror code {
+    background-color: rgba(255,255,255,.05);
+    font-family: Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    line-height: 1.2;
+    padding: 5px;
+    border-radius: 3px;
+}
+
 .cm-fat-cursor .CodeMirror-cursor {
     width: auto;
     border: 0!important;
@@ -88,7 +96,6 @@
 
 .CodeMirror,.CodeMirror-scroll {
     position: relative;
-    min-height: 300px
 }
 
 .cm-s-default .cm-header {
@@ -215,14 +222,13 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {
     position: relative;
     overflow: hidden;
     background: #fff;
-    height: 500px;
 }
 
 .CodeMirror-scroll {
     overflow: auto!important;
     outline: 0;
-    height: 500px;
-    position: relative
+    position: relative;
+    height: 100%;
 }
 
 .CodeMirror-sizer {
@@ -318,7 +324,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {
     color: inherit;
     z-index: 2;
     position: relative;
-    overflow: visible;
+    overflow: hidden;
     -webkit-tap-highlight-color: transparent;
     -webkit-font-variant-ligatures: contextual;
     font-variant-ligatures: contextual
@@ -428,17 +434,17 @@ span.CodeMirror-selectedtext {
 }
 
 .CodeMirror {
-    background-color: #444;
-    border: 1px solid #555;
-    border-bottom-left-radius: 6px;
-    border-bottom-right-radius: 6px;
-    color: #aaa;
+    background-color: #1E1E1E;
+    border-top: 1px solid #555;
+    /* border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px; */
+    color: #aaaaaa;
     font-family: inherit;
-    font-size: 14px;
-    height: auto;
+    font-size: 16px;
     line-height: 1.5;
-    padding: 14px;
-    z-index: 1
+    padding: 12px;
+    z-index: 1;
+    height: 100%;
 }
 
 .CodeMirror-scroll {
@@ -448,7 +454,7 @@ span.CodeMirror-selectedtext {
 }
 
 .CodeMirror-fullscreen {
-    background-color: #444;
+    background-color: #1E1E1E;
     border: 0;
     border-top: 1px solid #555;
     bottom: 0;
@@ -469,7 +475,7 @@ span.CodeMirror-selectedtext {
 }
 
 .CodeMirror-cursor {
-    border-left-color: #aaa
+    border-left-color: #aaaaaa
 }
 
 .CodeMirror pre,.CodeMirror-lines {
@@ -505,27 +511,27 @@ span.CodeMirror-selectedtext {
 }
 
 .CodeMirror .CodeMirror-code .cm-header-1 {
-    font-size: 28px
+    font-size: 30px
 }
 
 .CodeMirror .CodeMirror-code .cm-header-2 {
-    font-size: 22px
+    font-size: 24px
 }
 
 .CodeMirror .CodeMirror-code .cm-header-3 {
-    font-size: 20px
+    font-size: 22px
 }
 
 .CodeMirror .CodeMirror-code .cm-header-4 {
-    font-size: 18px
+    font-size: 20px
 }
 
 .CodeMirror .CodeMirror-code .cm-header-5 {
-    font-size: 16px
+    font-size: 18px
 }
 
 .CodeMirror .CodeMirror-code .cm-header-6 {
-    font-size: 14px
+    font-size: 16px
 }
 
 .CodeMirror .CodeMirror-code .cm-header,.CodeMirror .CodeMirror-code .cm-strong {
@@ -535,8 +541,7 @@ span.CodeMirror-selectedtext {
 .CodeMirror .CodeMirror-code .cm-comment {
     background-color: rgba(255,255,255,.05);
     font-family: Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-    font-size: 10px;
-    padding: 6px 0 4px
+    padding: 2px 0 2px;
 }
 
 .CodeMirror .CodeMirror-code span.CodeMirror-selectedtext.cm-comment {
@@ -549,7 +554,7 @@ span.CodeMirror-selectedtext {
     position: absolute;
     top: 0;
     width: 100%;
-    z-index: 2
+    z-index: 2;
 }
 
 .editor-preview-side {
@@ -565,12 +570,12 @@ span.CodeMirror-selectedtext {
 }
 
 .editor-preview,.editor-preview-side {
-    background-color: #444;
+    background-color: #1E1E1E;
     box-sizing: border-box;
-    color: #aaa;
+    color: #aaaaaa;
     display: none;
     font-family: inherit;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.5;
     overflow: auto;
     padding: 0 14px 14px
@@ -579,18 +584,18 @@ span.CodeMirror-selectedtext {
 .editor-preview pre,.editor-preview-side pre {
     background-color: rgba(255,255,255,.05);
     font-family: Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-    font-size: 10px;
     line-height: 1.2;
     margin-top: 10px;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 10px
+    padding: 10px;
+    border-radius: 3px;
+
 }
 
 .editor-preview pre code,.editor-preview-side pre code {
     background-color: transparent;
-    font-size: 14px;
-    padding: 0
+    padding: 0;
 }
 
 .editor-preview-active,.editor-preview-active-side {
@@ -598,7 +603,7 @@ span.CodeMirror-selectedtext {
 }
 
 .editor-preview table,.editor-preview-side table {
-    background-color: #444;
+    background-color: #1E1E1E;
     border: 0;
     border-collapse: collapse;
     border-spacing: 0;
@@ -639,11 +644,10 @@ span.CodeMirror-selectedtext {
 }
 
 .editor-toolbar {
-    background-color: #444;
-    border: 1px solid #555;
-    border-bottom: 0;
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
+    background-color: #1E1E1E;
+    /* border: 1px solid #555; */
+    /* border-top-left-radius: 6px;
+    border-top-right-radius: 6px; */
     font-size: 18px;
     padding: 0 18px;
     position: relative;
@@ -660,17 +664,17 @@ span.CodeMirror-selectedtext {
 }
 
 .editor-toolbar::before {
-    margin-bottom: 7px
+    margin-bottom: 5px
 }
 
 .editor-toolbar::after {
-    margin-top: 7px
+    margin-top: 5px
 }
 
 .editor-toolbar a {
     border: 1px solid transparent;
     border-radius: 6px;
-    color: #aaa!important;
+    color: #aaaaaa!important;
     cursor: pointer;
     display: inline-block;
     font-size: 80%;
@@ -684,7 +688,7 @@ span.CodeMirror-selectedtext {
 
 .editor-toolbar a.active,.editor-toolbar a:hover {
     border-color: #555;
-    color: #aaa!important
+    color: #aaaaaa!important
 }
 
 .editor-toolbar a::before {
@@ -730,11 +734,11 @@ span.CodeMirror-selectedtext {
 }
 
 .editor-toolbar:hover a {
-    color: #aaa!important
+    color: #aaaaaa!important
 }
 
 .editor-toolbar.fullscreen {
-    background-color: #444;
+    background-color: #1E1E1E;
     border: 0;
     box-sizing: border-box;
     height: 58px;
@@ -767,7 +771,7 @@ span.CodeMirror-selectedtext {
 }
 
 .editor-toolbar.disabled-for-preview a:not(.no-disable) {
-    background-color: #444;
+    background-color: #1E1E1E;
     border-color: transparent;
     pointer-events: none;
     text-shadow: inherit
