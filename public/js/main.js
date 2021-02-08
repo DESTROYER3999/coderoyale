@@ -34,6 +34,12 @@ runSubmissionTestsButton.addEventListener("click", run_submission_tests_clicked)
 
 require.config({ paths: { vs: 'monaco-editor/min/vs' } });
 
+
+// config windows and grids
+
+
+
+
 function content_layout() {
     contentDiv.style.gridTemplateColumns = "1fr auto 1fr";
 }
