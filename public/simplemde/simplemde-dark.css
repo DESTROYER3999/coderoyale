@@ -35,11 +35,12 @@
     border-left: 1px solid silver
 }
 
-.CodeMirror code {
+code {
     background-color: rgba(255,255,255,.05);
-    font-family: Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    font-family: Consolas, "Courier New", monospace;
+    color: #d4d4d4;
     line-height: 1.2;
-    padding: 5px;
+    padding: 3px 5px 3px 5px;
     border-radius: 3px;
 }
 
@@ -96,7 +97,7 @@
 
 .CodeMirror,.CodeMirror-scroll {
     position: relative;
-    min-height: 90%;
+    /* min-height: 90%; */
 }
 
 .cm-s-default .cm-header {
@@ -220,18 +221,39 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {
 }
 
 .CodeMirror {
-    position: relative;
+    /* position: relative; */
     overflow: hidden;
     background: #fff;
-    height: 100%;;
 }
 
 .CodeMirror-scroll {
     overflow: auto!important;
     outline: 0;
     position: relative;
-    height: 300px;
+    height: auto;
 }
+
+::-webkit-scrollbar {
+    width: 13px;
+    background-color: #1E1E1E;
+
+}
+
+
+::-webkit-scrollbar-thumb {
+    background-color: #424242;
+
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #4E4E4E;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background-color: #5E5E5E;
+}
+
+
 
 .CodeMirror-sizer {
     position: relative;
@@ -249,6 +271,12 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {
     top: 0;
     overflow-x: hidden;
     overflow-y: scroll;
+    /* border-left: 1px solid #393939; */
+}
+
+
+.CodeMirror-vscrollbar > div {
+    background-color: #525252;
 }
 
 .CodeMirror-hscrollbar {
@@ -444,15 +472,17 @@ span.CodeMirror-selectedtext {
     font-family: inherit;
     font-size: 16px;
     line-height: 1.5;
-    padding: 12px;
+    height: auto;
+    padding: 10px;
+    padding-bottom: 0px;
     z-index: 1;
-    height: 100%;
 }
 
 .CodeMirror-scroll {
-    margin-bottom: -32px;
+    /* margin-bottom: -32px; */
     margin-right: -32px;
-    padding-bottom: 32px
+    /* padding-bottom: 32px; */
+    /* background-color: rgb(0, 82, 0); */
 }
 
 .CodeMirror-fullscreen {
@@ -489,7 +519,7 @@ span.CodeMirror-selectedtext {
 }
 
 .CodeMirror-focused .CodeMirror-selected,.CodeMirror-line::selection,.CodeMirror-line>span::selection,.CodeMirror-line>span>span::selection,.CodeMirror-selected {
-    background-color: rgba(255,255,255,.1)
+    background-color: #264F78;
 }
 
 .CodeMirror .CodeMirror-code .cm-attribute,.CodeMirror .CodeMirror-code .cm-tag {
@@ -542,7 +572,8 @@ span.CodeMirror-selectedtext {
 
 .CodeMirror .CodeMirror-code .cm-comment {
     background-color: rgba(255,255,255,.05);
-    font-family: Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    color: #d4d4d4;
+    font-family: Consolas, "Courier New", monospace;
     padding: 2px 0 2px;
 }
 
@@ -590,7 +621,7 @@ span.CodeMirror-selectedtext {
     margin-top: 10px;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 10px;
+    padding: 7px 10px 7px 10px;
     border-radius: 3px;
 
 }
@@ -781,6 +812,15 @@ span.CodeMirror-selectedtext {
 
 .disabled-for-preview + div >.CodeMirror-vscrollbar {
     z-index: 0!important;
+}
+
+.disabled-for-preview + div ::-webkit-scrollbar {
+    width: 13px;
+    border-left: 1px solid #525252;
+}
+.disabled-for-preview + div ::-webkit-scrollbar-thumb {
+    border-left: 1px solid #525252;
+    /* border-radius: #5E5E5E; */
 }
 
 .editor-statusbar {

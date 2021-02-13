@@ -1,7 +1,6 @@
 import sys
 import inspect
 
-
 class TestGroup(object):
     results = {}
 
@@ -15,11 +14,15 @@ class TestGroup(object):
         return TestGroup.results
     @staticmethod
     def update_results(assertion, cls, result, **kwargs):
+        # for kw in kwargs:
+        #     kwargs[kw] = str(kwargs[kw])
         func_name = inspect.getframeinfo(sys._getframe().f_back.f_back)[2]
-        TestGroup.results[cls.__name__][func_name] = {**{
+        if func_name not in TestGroup.results[cls.__name__]:
+            TestGroup.results[cls.__name__][func_name] = []
+        TestGroup.results[cls.__name__][func_name].append({**{
             "assertion": assertion,
             "result": str(result)
-        }, **kwargs}
+        }, **kwargs})
 
     @staticmethod
     def assert_equal(cls, a, b):
