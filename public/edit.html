@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>coderoyale</title>
+		<link rel="icon" type="image/png" sizes="32x32" href="/global/images/favicon/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/global/images/favicon/favicon-16x16.png">
+		<link rel="manifest" href="/global/images/favicon/site.webmanifest">
+		<link rel="mask-icon" href="/global/images/favicon/safari-pinned-tab.svg" color="#323232">
+		<link rel="shortcut icon" href="/global/images/favicon/favicon.ico">
+		<meta name="msapplication-TileColor" content="#00aba9">
+		<meta name="msapplication-config" content="/global/images/favicon/browserconfig.xml">
+		<meta name="theme-color" content="#ffffff">
+		<link rel="stylesheet" href="/global/css/global.css">
+		<link rel="stylesheet" href="/edit/css/edit.css">
+		<link rel="preconnect" href="https://fonts.gstatic.com">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap">
+		<link rel="stylesheet" href="/global/simplemde/simplemde-dark.css">
+	</head>
+	<body>
+		<!-- <h2 class="title">Python interpreter online!</h2> -->
+
+
+		<div class="outer" id="maincontent">
+			<div class="outer-content">
+				<div class="container">
+					<div class="window">
+						<div class="tabs-container">
+							<!-- <img class="logo" src="global/images/logo.png"> -->
+
+							<button class="tab selected"><span>Instructions</span></button>
+							<button class="tab"><span>Example Tests</span></button>
+							<button class="tab"><span>Submission Tests</span></button>
+							<button class="tab"><span>Options</span></button>
+							<!-- <button class="tab"><span>Blank Page</span></button> -->
+	
+						</div>
+						<div class="pages">
+							<div class="challenge-information page">
+								<div class="page-content" id="simplemde-container">
+									<!-- <div id="simplemde-editor">Simple MDE Editor</div> -->
+									<textarea class="simplemde-editor" id="challenge-info-mde"></textarea>
+								</div>
+		
+
+								
+							</div>
+							<div class="sample-test-cases page">
+								<div class="page-content outer">
+									<div class="outer-content">
+										<div class="container">
+											<div class="window">
+												<div class="tabs-container">
+													<button class="tab selected"><span>Test Cases</span></button>
+												</div>
+												<div class="pages">
+													<div class="page">
+														<div class="page-content">
+															<div class="monaco-container" id="sampletests-monaco-editor"></div>
+														</div>
+														<div class="lower-controls">
+															<button id="run-button">Run Code</button>
+							
+														</div>
+													</div>
+												</div> <!-- end here-->
+											</div>
+											<div class="window" id="output-window">
+												<div class="tabs-container">
+													<button class="tab selected"><span>Test Results</span></button>
+												</div>
+												<div class="pages">
+													<div class="page">
+														<div class="page-content">
+															<div class="test-results" id="sample-test-results">
+													
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+
+									</div>
+								
+							
+								</div>
+						
+								<div class="lower-controls">
+									<button id="run-sample-tests-code">Run Tests</button>
+								</div>
+							</div>
+							<div class="submission-test-cases page">
+								<div class="page-content outer">
+									<div class="outer-content">
+										<div class="container">
+											<div class="window">
+												<div class="tabs-container">
+													<button class="tab selected"><span>Test Cases</span></button>
+												</div>
+												<div class="pages">
+													<div class="page">
+														<div class="page-content">
+		
+															<div class="monaco-container" id="submissiontests-monaco-editor"></div>
+												
+														</div>
+														<div class="lower-controls">
+															<button id="run-button">Run Code</button>
+															<!-- <button id="test-button">Run Sample Tests</button>
+															<button id="submission-test-button">Run Submission Tests</button> -->
+															<!-- <button id="submit-button">Submit</button> -->
+														</div>
+													</div>
+												</div>
+											</div>
+											<div class="window" id="output-window">
+												<div class="tabs-container">
+													<button class="tab selected"><span>Test Results</span></button>
+												</div>
+												<div class="pages">
+													<div class="page">
+														<div class="page-content">
+															<div class="test-results" id="submission-test-results"></div>
+														</div>
+														<!-- <textarea id="output" rows="1" readonly></textarea> -->
+													</div>
+												</div>
+											</div>
+										</div>	
+									</div>
+								
+								</div>
+								<div class="lower-controls">
+									<button id="run-sample-tests-code">Run Tests</button>
+
+								</div>
+								
+							</div>
+							<div class="save-challenge page">
+								<div class="page-content">
+									<!-- <div class="input-container">
+										<span>Title:</span><input spellcheck="false" autocomplete="off">
+									</div> -->
+								</div>
+								<div class="lower-controls">
+									<button class="highlight" id="save-button">Save Challenge</button>
+
+								</div>
+
+								
+							</div>
+						</div>
+					</div>
+					
+					<!-- <div class="window bottom">			
+	
+					</div> -->
+					
+				</div>
+				<div class="container">
+					<div class="window">
+						<div class="tabs-container">
+							<button class="tab selected"><span>Solution</span></button>
+						</div>
+						<div class="pages">
+							<div class="page">
+								<div class="page-content">
+									<div class="monaco-container" id="main-monaco-editor"></div>
+								</div>
+								<div class="lower-controls">
+									<button id="run-button">Run Code</button>
+	
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="window" id="output-window">
+						<div class="tabs-container">
+							<button class="tab selected"><span>Output</span></button>
+						</div>
+						<div class="pages">
+							<div class="page">
+								<div class="page-content">
+									<!-- <textarea class="code-output" rows=1 readonly></textarea> -->
+									<div class="code-output output">
+										<span id="stdout"></span>
+										<span class="fail" id="stderr"></span>
+										<span id="exitcode"></span>
+									</div>
+								</div>
+								
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		
+		
+
+
+
+		</div>
+
+
+		<script src="https://kit.fontawesome.com/104a8c0d4b.js" crossorigin="anonymous"></script>
+		<script src="/global/simplemde/simplemde.js"></script>				
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="/global/monaco-editor/min/vs/loader.js"></script>
+		<script src="/edit/js/edit.js"></script>
+		
+	</body>
+</html>

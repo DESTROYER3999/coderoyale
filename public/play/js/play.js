@@ -1,98 +1,309 @@
 
 require.config({ paths: { vs: 'monaco-editor/min/vs' } });
 
+
+
+let pingStart;
+let isHost = false;
+
+class SocketHandler {
+    constructor() {
+        this.socket = io();
+        this.id = null;
+        this.bind_messages();
+    }
+
+    ping_interval() {
+        pingStart = Date.now();
+        socketHandler.socket.emit("ping");
+    }
+
+    bind_messages() {
+        this.socket.on("connect", this.handle_connect);
+        this.socket.on("disconnect", this.handle_disconnect);
+        this.socket.on("host leave", this.handle_host_leave);
+        this.socket.on("client join", this.handle_client_join);
+        this.socket.on("game start", this.handle_game_start);
+        this.socket.on("client leave", this.handle_client_leave);
+        this.socket.on("receive chat", this.handle_receive_chat);
+        this.socket.on("overview", this.handle_overview);
+        this.socket.on("pong", this.handle_pong);
+    }
+
+    kick_player(id, callback) {
+        console.log("KICKING PLAYER", id);
+        this.socket.emit("kick player", id, (result) => {
+            console.log("KICK RESULT", result)
+        });
+    }
+
+    submit(solution) {
+        this.socket.emit("submit", solution);
+    }
+
+    send_chat(message) {
+        this.socket.emit("send chat", message);
+    }
+
+    start_game(callback) {
+        this.socket.emit("start game", (result) => {
+            return callback(result);
+        })
+    }
+
+    join_room(roomID, callback) {
+        this.socket.emit("join room", roomID, (result) => {
+            return callback(result);
+        })
+    }
+
+    create_room(challengeID, callback) {
+        this.socket.emit("create room", challengeID, (result) => {
+            return callback(result);
+        })
+    }
+
+    execute_tests(tests, solution, callback) {
+        this.socket.emit("execute tests", {
+            tests: tests,
+            solution: solution,
+            stdin: ""
+        }, (result) => {
+            return callback(result);
+        });
+
+    }
+
+    execute_code(code, callback) {
+        this.socket.emit("execute code", {
+            code: code,
+            stdin: ""
+        }, (result) => {
+            return callback(result);
+        });
+
+    }
+
+    handle_pong() {
+        let pingTime = Date.now() - pingStart;
+        let pingLabel = document.getElementById("ping-label");
+        pingLabel.innerText = pingTime;
+    }
+
+    handle_overview(overview) {
+        console.log("RECEIVED OVERVIEW", overview);
+        let overviewContainer = document.getElementById("overview-container");
+        let testResults = JSON.parse(overview.overview.testResults.result);
+        let totalTimeMS = overview.overview.totalTime;
+        let displayClient;
+        if (overview.client == socketHandler.socket.id) {
+            displayClient = "You";
+            set_test_results(overview.overview.testResults, document.getElementById("submission-test-results"));
+        } else {
+            displayClient = overview.client;
+        }
+
+        let totalPassed = 0;
+        let totalFailed = 0;
+
+
+        for (let testGroupName in testResults) {
+            let testGroup = testResults[testGroupName];
+            for (let groupSetName in testGroup) {
+                let groupSet = testGroup[groupSetName];
+                for (let setResultName in groupSet) {
+                    let setResult = groupSet[setResultName];
+                    if (setResult.result == "True") {
+                        totalPassed += 1;
+                    } else {
+                        totalFailed += 1;
+                    }
+                }
+            }
+        }
+        let totalTests = totalPassed + totalFailed;
+
+        let percentPassed = (totalPassed / totalTests) * 100;
+
+        let stringTime = [];
+
+        let totalTimeHMSMS = hmsms(totalTimeMS);
+        if (totalTimeHMSMS.hours) {
+            stringTime.push(totalTimeHMSMS.hours + " hours");
+        }
+        if (totalTimeHMSMS.minutes) {
+            stringTime.push(totalTimeHMSMS.minutes + " minutes");
+        }
+        if (totalTimeHMSMS.seconds) {
+            stringTime.push(totalTimeHMSMS.seconds + " seconds");
+        }
+        if (totalTimeHMSMS.milliseconds) {
+            stringTime.push(totalTimeHMSMS.milliseconds + " milliseconds");
+        }
+
+        stringTime = stringTime.join(", ");
+
+        overviewContainer.insertAdjacentHTML("beforeend", `
+        <div>
+            <span>${displayClient}</span>
+            <hr>
+            <span class="results-summary">
+                <span>
+                    <span>Time: </span><span>${stringTime}</span>
+                </span>
+                <span>
+                    <span>Score: </span><span>${percentPassed}%</span>
+                </span>
+                <span>
+                    (<span class="pass">Passed: ${totalPassed}</span> |
+                    <span class="fail">Failed: ${totalFailed}</span>)
+                </span>
+
+            </span>
+        </div>
+        `)
+        
+
+
+    }
+
+    handle_receive_chat(info) {
+        let chatContainer = document.getElementById("chat-container");
+        let displaySender;
+        if (info.sender == socketHandler.socket.id) {
+            displaySender = "You";
+        } else {
+            displaySender = info.sender;
+        }
+        let displayMessage = replaceAll(info.message, socketHandler.socket.id, "You");
+        let messageSpan = document.createElement("span");
+        messageSpan.innerHTML = `<span><span>${displaySender}</span>: <span>${displayMessage}</span></span>`;
+        chatContainer.appendChild(messageSpan);
+        messageSpan.scrollIntoView();
+
+    }
+
+    handle_client_leave(id) {
+        let playerListDiv = document.getElementById("player-list").lastElementChild;
+        for (let child of playerListDiv.children) {
+            if (child.firstElementChild.innerText == id) {
+                child.remove();
+            }
+        }
+
+    }
+
+    handle_game_start(challengeInfo) {
+        console.log("Start msg recieved");
+        console.log("STARTING...", challengeInfo)
+        sampleTestsEditor.getModel().setValue(challengeInfo.exampleTests);
+
+        mainEditor.setValue(challengeInfo.initialSolution);
+
+        let submitBtn = document.getElementById("submit-button");
+        submitBtn.disabled = false;
+        submitBtn.classList.add("highlight");
+        tab_clicked(document.getElementById("instructions-tab"))
+        challengeInfoMde.value(`# ${challengeInfo.title}\n${challengeInfo.instructions}`);
+
+        challengeInfoMde.togglePreview();
+
+
+
+        
+    }
+
+    handle_client_join(id) {
+        let playerListDiv = document.getElementById("player-list").lastElementChild;
+        let playerSpan = document.createElement("span");
+        playerSpan.innerHTML = `<span><span>${id}</span></span>`;
+        let kickBtn = document.createElement("span");
+        if (isHost) {
+            kickBtn.innerHTML = "<span>Kick</span>";
+
+        }
+        playerSpan.appendChild(kickBtn);
+
+        kickBtn.onclick = (e) => {
+            let id = e.currentTarget.previousElementSibling.innerText;
+            socketHandler.kick_player(id, (result) => {
+
+            });
+        }
+
+        playerListDiv.appendChild(playerSpan);
+    }
+
+    handle_host_leave() {
+        alert("The host left the room!");
+    }
+
+
+    handle_connect() {
+        console.log("Connected to the server!");
+        setInterval(socketHandler.ping_interval, 5000);
+        let playerListDiv = document.getElementById("player-list").lastElementChild;
+        playerListDiv.insertAdjacentHTML("beforeend", `
+        <span><span>You</span><span></span></span>
+        `);
+
+    }
+
+    handle_disconnect() {
+        console.log("Disconnected from the server!");
+    }
+
+    // Other handle functions here
+    
+
+}
+
+const socketHandler = new SocketHandler();
+
+
+
+
 let hSeperators = [];
 let vSeperators = [];
 
-const challengeInfoDefault = `# Sum-Double
-#### Example challenge
+function replaceAll(string, from, to) {
+    var re = new RegExp(from, "g");
+    return string.replace(re, to);
+}
 
-
------
-
-## Goal:
-Define the function \`sumDouble(numStr)\` that takes in a string (\`numStr\`) with two numbers seperated by a singe space and return their sum. If the two values are the same, return double their sum.
-
-
------
-
-## Examples:
-\`\`\`
-sum_double("1 2") → 3
-sum_double("3 2") → 5
-sum_double("2 2") → 8
-\`\`\`
-
-`
-
-const mainEditorDefault = `def sum_double(numStr):
-    return int(numStr.split()[0]) + int(numStr.split()[1])
-
-`
-const sampleTestsDefault = `import cr_test
-from solution import sum_double
-
-class ExampleTests(cr_test.TestGroup):
-    def test_1(self):
-        self.assert_equal(self, sum_double("1 2"), 3)
-        self.assert_equal(self, sum_double("3 2"), 5)
-        self.assert_equal(self, sum_double("2 2"), 8)
-    def test_2(self):
-        self.assert_equal(self, sum_double("1 2"), 3)
-        self.assert_equal(self, sum_double("3 2"), 5)
-        self.assert_equal(self, sum_double("2 2"), 8)
-class ExampleTests2(cr_test.TestGroup):
-    def test_1(self):
-        self.assert_equal(self, sum_double("1 2"), 3)
-        self.assert_equal(self, sum_double("3 2"), 5)
-        self.assert_equal(self, sum_double("2 2"), 8)
-    def test_2(self):
-        self.assert_equal(self, sum_double("1 2"), 3)
-        self.assert_equal(self, sum_double("3 2"), 5)
-        self.assert_equal(self, sum_double("2 2"), 8)
-
-cr_test.run()
-
-`
-
-const submissionTestsDefault = `import random
-from solution import sum_double
-import cr_test
-
-def actual_solution(numStr):
-    num1 = int(numStr.split()[0])
-    num2 = int(numStr.split()[1])
-    if num1 == num2:
-        return 2 * (num1 + num2)
-    return num1 + num2
-
-randomInputs = []
-for x in range(100):
-    randomInputs.append(f"{random.randint(1, 20)} {random.randint(1, 20)}")
-
-class SubmissionTests(cr_test.TestGroup):
-    def test_random_inputs(self):
-        for randomInput in randomInputs:
-            self.assert_equal(self, 
-                                sum_double(randomInput), 
-                                actual_solution(randomInput)
-                            )
-
-cr_test.run()
-
-`
-
+function hmsms(ms) {
+    let h = Math.floor(ms / 1000 / 60 / 60);
+    let m = Math.floor((ms / 1000 / 60 / 60 - h) * 60);
+    let sDecimal = (((ms / 1000 / 60 / 60 - h) * 60 - m) * 60);
+    let s = Math.floor(sDecimal);
+    let leftoverMs = Math.round((sDecimal - Math.floor(sDecimal)) * 1000);
+    return {
+        hours: h,
+        minutes: m,
+        seconds: s,
+        milliseconds: leftoverMs
+    }
+}
 
 function is_visible(element) {
     return (element.offsetParent != null)
 }
 
 function page_from_tab(tab) {
-    return tab.parentElement.parentElement.lastElementChild.children[Array.from(tab.parentElement.children).indexOf(tab)];
+    let tabs = [];
+    for (let element of tab.parentElement.children) {
+        if (element.classList.contains("tab")) {
+            tabs.push(element);
+        }
+    }
+
+
+    return tab.parentElement.parentElement.lastElementChild.children[tabs.indexOf(tab)];
+
 }
 
 
-function elementsFromPoint(x,y) {
+function elementsFromPoint(x, y) {
 	var elements = [], previousPointerEvents = [], current, i, d;
 
 	if(typeof document.elementsFromPoint === "function")
@@ -124,11 +335,9 @@ function elementsFromPoint(x,y) {
 }
 
 
-
 function start_editor_layout() {
-    console.log("start editor layout...")
 
-    let editors = [mainEditor, sampleTestsEditor, submissionTestsEditor];
+    let editors = [mainEditor, sampleTestsEditor];
     for (let i = 0; i < editors.length; i++) {
         let editor = editors[i];
         if (is_visible(editor.container)) {
@@ -138,8 +347,7 @@ function start_editor_layout() {
 }
 
 function finish_editor_layout() {
-    console.log("finish editor layout...")
-    let editors = [mainEditor, sampleTestsEditor, submissionTestsEditor];
+    let editors = [mainEditor, sampleTestsEditor];
     for (let i = 0; i < editors.length; i++) {
         let editor = editors[i];
         if (is_visible(editor.container)) {
@@ -160,44 +368,127 @@ function finish_editor_layout() {
     }
 }
 
+function insert_cr_logo() {
+    let tabsContainers = document.getElementsByClassName("tabs-container");
+    let firstContainer = document.getElementById("maincontent").firstElementChild.firstElementChild;
+    let tabsContainer = firstContainer.firstElementChild.nextElementSibling.firstElementChild.nextElementSibling;
+
+    for (let tc of tabsContainers) {
+        if (tc.firstElementChild && tc.firstElementChild.tagName == "A") {
+            tc.firstElementChild.remove();
+        }
+    }
+
+
+    tabsContainer.insertAdjacentHTML("afterBegin", '<a href="/"><img class="logo" src="/global/images/logo.png"></a>');
+    document.getElementsByClassName("logo")[0].onload = () => tab_cover_layout();
+
+}
+
+function start_chat_layout() {
+    let chatDiv = document.getElementById("chat-container");
+    if (is_visible(chatDiv)) {
+        chatDiv.style.width = chatDiv.offsetWidth + "px";
+        let newTop = 0;
+        for (let child of chatDiv.parentElement.children) {
+            if (child != chatDiv) {
+                newTop += child.offsetHeight;
+            }
+        }
+        chatDiv.parentElement.style.position = "relative";
+        chatDiv.style.position = "absolute";
+        chatDiv.style.top = newTop + "px";
+    }
+}
+
+
+function finish_chat_layout() {
+    let chatDiv = document.getElementById("chat-container");
+    if (is_visible(chatDiv)) {
+            let newHeight = chatDiv.parentElement.offsetHeight;
+            for (let child of chatDiv.parentElement.children) {
+                if (child != chatDiv) {
+                    newHeight -= child.offsetHeight;
+                }
+            }
+            newHeight -= 10;
+            chatDiv.style = null;
+
+            chatDiv.style.height = newHeight + "px";
+
+        }
+}
+
 function start_test_result_layout() {
-    let testResults = document.getElementsByClassName("results-body");
+    let testResults = document.getElementsByClassName("output");
     for (let testResult of testResults) {
         if (is_visible(testResult)) {
-            console.log("SETTING THE DISPLAY OF", testResult)
+            testResult.style.width = testResult.offsetWidth + "px";
+            let newTop = 0;
+            for (let child of testResult.parentElement.children) {
+                if (child != testResult) {
+                    newTop += child.offsetHeight;
+                }
+            }
+            testResult.parentElement.style.position = "relative";
             testResult.style.position = "absolute";
+            testResult.style.top = newTop + "px";
+
         }
     }
 }
 
 function finish_test_result_layout() {
-    let testResults = document.getElementsByClassName("results-body");
+    let testResults = document.getElementsByClassName("output");
     for (let testResult of testResults) {
         if (is_visible(testResult)) {
-            let newHeight = testResult.parentElement.offsetHeight - 47;
+            let newHeight = testResult.parentElement.offsetHeight;
+            for (let child of testResult.parentElement.children) {
+                if (child != testResult) {
+                    newHeight -= child.offsetHeight;
+                }
+            }
+            testResult.style = null;
+
             testResult.style.height = newHeight + "px";
-            testResult.style.position = null;
+
         }
     }
 }
 
 function md_layout() {
-    console.log("md layout...")
 
     let cmScroll = document.getElementsByClassName("CodeMirror-scroll")[0];
     if (is_visible(cmScroll)) {
         cmScroll.style.display = "none";
-        let newHeight = cmScroll.parentElement.offsetHeight - 11;
+        let newHeight = cmScroll.parentElement.offsetHeight - 72;
         cmScroll.style.height = newHeight + "px";
         cmScroll.style.display = null;
     }
 
 }
 
+function tab_cover_layout() {
+    let tabs = document.getElementsByClassName("tab");
+    for (let tab of tabs) {
+        if (tab.classList.contains("selected")) {
+            for (let child of tab.parentElement.parentElement.children) {
+                if (child.classList.contains("tab-cover")) {
+                    child.style.width = tab.offsetWidth + "px";
+                    child.style.left = tab.offsetLeft + "px";
+                    child.style.top = tab.parentElement.offsetTop + tab.offsetHeight + 5 + "px";
+                }
+            }
+        }
+        
+    }
+    
+}
+
+
 
 function window_layout() {
     // Clean this up too
-    console.log("window layout...")
 
     // Layout outer padding
     let outers = document.getElementsByClassName("outer");
@@ -340,9 +631,7 @@ function window_layout() {
 
             } else {
                 if (element.classList.contains("window")) {
-                    // if (window == container.firstElementChild) {
-                    //     continue;
-                    // }
+
                     shouldBeSeperator = true;
                     containerStyle.push("1fr");
                     newElements.push(element);
@@ -378,22 +667,24 @@ function window_layout() {
                 page.firstElementChild.style.gridTemplateRows = "1fr";
 
             }
-        } else {
-            page.firstElementChild.style.gridTemplateRows = "auto 1fr";
         }
+        //  else {
+        //     console.log("STYLOING", page.firstElementChild)
+        //     page.firstElementChild.style.gridTemplateRows = "1fr";
+        // }
     }
 
 }
 
 
 function bind_hSeperators() {
-    console.log("bind hSeperators...")
 
     function mouse_down(e, hSeperator) {
         let parent = hSeperator.parentElement;
 
         start_editor_layout();
         start_test_result_layout();
+        start_chat_layout();
 
         document.onmousemove = (de) => mouse_move(de, hSeperator, parent);
         document.onmouseup = mouse_up;
@@ -430,7 +721,6 @@ function bind_hSeperators() {
 
 
 function bind_vSeperators() {
-    console.log("bind vSeperators...")
 
     function mouse_down(e, vSeperator) {
         let parent = vSeperator.parentElement;
@@ -472,31 +762,56 @@ function bind_vSeperators() {
 }
 
 
-function bind_tab_pages() {
-    console.log("bind tab pages...")
-    
-    function tab_clicked(e) {
-        let tab = e.currentTarget;
-        let page = page_from_tab(tab);
-        let relatedTabs = tab.parentElement.children;
-        let relatedPages = tab.parentElement.parentElement.lastElementChild.children;
 
-        
-        for (let otherTab of relatedTabs) {
-            otherTab.classList.remove("selected");
-        }
-        for (let otherPage of relatedPages) {
-            otherPage.classList.remove("selected");
-        }
+function tab_clicked(e) {
+    let tab;
+    if (e.tagName) {
+        tab = e;
+    } else {
+        tab = e.currentTarget;
+    }
+    let page = page_from_tab(tab);
+    let relatedTabs = tab.parentElement.children;
+    let relatedPages = tab.parentElement.parentElement.lastElementChild.children;
+
     
-        tab.classList.add("selected");
-        page.classList.add("selected");
-        let onfinishedselectEvent = new CustomEvent("onfinishedselect", { detail: e });
-        document.dispatchEvent(onfinishedselectEvent);
-        size_dependant_layout();
+    for (let otherTab of relatedTabs) {
+        otherTab.classList.remove("selected");
+    }
+    for (let otherPage of relatedPages) {
+        otherPage.classList.remove("selected");
     }
 
+    tab.classList.add("selected");
+    page.classList.add("selected");
+    if (!e.tagName) {
+        let onfinishedselectEvent = new CustomEvent("onfinishedselect", { detail: e });
+        document.dispatchEvent(onfinishedselectEvent);
+    }
+
+    size_dependant_layout();
+}
+
+function bind_tab_pages() {
+    
+
+
     let tabs = document.getElementsByClassName("tab");
+    let windows = document.getElementsByClassName("window");
+    
+    for (let window of windows) {
+        let hasCover = false;
+        for (let child of window.children) {
+            if (child.classList.contains("tab-cover")) {
+                hasCover = true;
+            }
+        }
+        if (!hasCover) {
+            window.insertAdjacentHTML("afterBegin", "<span class='tab-cover'></span>");
+            // window.innerHTML = "" + window.innerHTML;
+        }
+
+    }
 
     for (let tab of tabs) {
         tab.onmousedown = tab_clicked;
@@ -511,11 +826,10 @@ function bind_tag_drag() {
     function mouse_down(customEvent) {
         e = customEvent.detail;
         let tab = e.currentTarget;
-        let originalContainer = tab.parentElement;
     
 
         let tabIndex = Array.from(tab.parentElement.children).indexOf(tab)
-        let page = tab.parentElement.parentElement.lastElementChild.children[tabIndex];
+        let page = page_from_tab(tab);
 
         let startPos = {
             x: e.clientX,
@@ -525,19 +839,14 @@ function bind_tag_drag() {
             x: tab.offsetLeft - 5,
             y: tab.offsetTop - 5
         }
-        document.onmousemove = (de) => mouse_move(de, tab, page, startPos, startOffset, originalContainer);
+        document.onmousemove = (de) => mouse_move(de, tab, page, startPos, startOffset);
         document.onmouseup = (e) => document.onmousemove = null;
     }
 
-    function mouse_up(e, dragContainer, originalContainer) {
+    function mouse_up(e, dragContainer, originalParent, hiddenElements) {
         // Make this function WAY better
         document.onmouseup = null;
         document.onmousemove = null;
-
-        // if (!dragContainer) {
-
-        //     return
-        // }
         let selectedElement;
  
 
@@ -545,13 +854,7 @@ function bind_tag_drag() {
 
         let tabsContainers = document.getElementsByClassName("tabs-container");
         let outerPaddings = document.getElementsByClassName("outer-padding");
-        // let pageContents = document.getElementsByClassName("page-content");
 
-        // for (let pageContent of pageContents) {
-        //     if (pointResult.includes(pageContent)) {
-        //         selectedElement = pageContent;
-        //     }
-        // }
         
         for (let currentOuterPadding of outerPaddings) {
             if (pointResult.includes(currentOuterPadding)) {
@@ -575,16 +878,50 @@ function bind_tag_drag() {
             }
         }
 
+        
+        let currentTab = dragContainer.firstElementChild;
+        let currentPage = dragContainer.lastElementChild;
+
+
+
+        if (!selectedElement) {
+            if (Object.keys(hiddenElements).length == 0) {
+                currentTab.style = null;
+                currentPage.style = null;
+                originalParent[0].appendChild(currentTab);
+                originalParent[1].appendChild(currentPage);
+                for (let sibling of currentTab.parentElement.children) {
+                    if (sibling != currentTab) {
+                        sibling.classList.remove("selected");
+                    }
+                }
+                for (let sibling of currentPage.parentElement.children) {
+                    if (sibling != currentPage) {
+                        sibling.classList.remove("selected");
+                    }
+                }
+
+            } else {
+                for (let num of Object.keys(hiddenElements)) {
+                    let parent = hiddenElements[num][0];
+                    let element = hiddenElements[num][1];
+                    parent.appendChild(element);
+                    currentTab.style = null;
+                    currentPage.style = null;
+                    originalParent[0].appendChild(currentTab);
+                    originalParent[1].appendChild(currentPage);
+                }
+            }
+
+            dragContainer.remove();
+
+            position_dependant_layout();
+            size_dependant_layout();
+            return;
+        }
 
         
 
-        // if (!selectedElement) {
-        //     return mouse_up(null, dragContainer, originalContainer);
-
-        // }
-
-        let currentTab = dragContainer.firstElementChild;
-        let currentPage = dragContainer.lastElementChild;
 
 
 
@@ -737,7 +1074,7 @@ function bind_tag_drag() {
 
     } // end
 
-    function handle_drag(de, startPos, startOffset, dragContainer, originalContainer) {
+    function handle_drag(de, startPos, startOffset, dragContainer) {
 
         for (let element of document.getElementsByClassName("hover")) {
             element.classList.remove("hover");
@@ -798,55 +1135,58 @@ function bind_tag_drag() {
         dragContainer.style.left = `${de.clientX - (startPos.x - startOffset.x)}px`;
         dragContainer.style.top = `${de.clientY - (startPos.y - startOffset.y)}px`;
     }
-    function mouse_move(de, tab, page, startPos, startOffset, originalContainer) {
+    function mouse_move(de, tab, page, startPos, startOffset) {
         let distance = Math.hypot(de.clientX - startPos.x, de.clientY - startPos.y);
         if (distance >= 20) {
             let beforeWidth = page.offsetWidth;
             let beforeHeight = page.offsetHeight;
 
-            let dragContainer = document.createElement("div");
+            let dragContainer = make_element("div", ["drag-container", "page", "selected"])
             let tabsContainer = tab.parentElement;
             let pagesContainer = tabsContainer.parentElement.lastElementChild;
             let currentWindow = tabsContainer.parentElement;
             let currentContainer = currentWindow.parentElement;
+            let hiddenElements = {};
+            let originalParent = [tab.parentElement, page.parentElement];
+            let hiddenElementsContainer = make_element("div", ["hidden-elements"]);
+            document.body.appendChild(hiddenElementsContainer);
+            function add_hidden(element) {
+                hiddenElements[Object.keys(hiddenElements).length] = [element.parentElement, element];
+                hiddenElementsContainer.appendChild(element);
 
+            }
 
-            dragContainer.classList.add("drag-container", "page", "selected");
             dragContainer.appendChild(tab);
             dragContainer.appendChild(page);
             document.body.appendChild(dragContainer);
+
             if (tabsContainer.lastElementChild) {
-                tabsContainer.lastElementChild.classList.add("selected");
-                pagesContainer.lastElementChild.classList.add("selected");
-            }
-   
-
-            if (currentWindow.firstElementChild.children.length == 0) {
-                if (currentWindow.parentElement.children.length == 3) {
-
-                } else if (currentWindow.parentElement.children[currentWindow.parentElement.children.length - 2] == currentWindow) {
-                    currentWindow.parentElement.children[currentWindow.parentElement.children.length - 3].remove();
+                console.log("LAST", tabsContainer.lastElementChild)
+                if (tabsContainer.lastElementChild.lastElementChild.classList.contains("logo")) {
+                    console.log("REMOVING", tabsContainer.lastElementChild)
+                    tabsContainer.lastElementChild.remove();
                 } else {
-                    currentWindow.parentElement.children[Array.from(currentWindow.parentElement.children).indexOf(currentWindow) + 1].remove();
+                    tabsContainer.lastElementChild.classList.add("selected");
+                    pagesContainer.lastElementChild.classList.add("selected");
+                }
+
+            }
+            if (currentWindow.children[1].children.length == 0) {
+                if (currentWindow.previousElementSibling && currentWindow.previousElementSibling.classList.contains("seperator")) {
+                    currentWindow.previousElementSibling.remove();
 
                 }
-                currentWindow.remove();
-
+                add_hidden(currentWindow);
                 if (currentContainer.children.length == 2) {
-                    if (currentContainer.parentElement.children.length == 1) {
-
-                    } else if (currentContainer.parentElement.children[currentContainer.parentElement.children.length - 1] == currentContainer) {
-
-                        currentContainer.parentElement.children[currentContainer.parentElement.children.length - 2].remove();
-                    } else {
-
-                        currentContainer.parentElement.children[Array.from(currentContainer.parentElement.children).indexOf(currentContainer) + 1].remove();
+                    if (currentContainer.previousElementSibling && currentContainer.previousElementSibling.classList.contains("seperator")) {
+                        currentContainer.previousElementSibling.remove();
                     }
-                    currentContainer.remove()
+                    add_hidden(currentContainer);
                 }
 
             }
 
+        
 
             page.style.border = "1px solid #555555";
  
@@ -864,8 +1204,8 @@ function bind_tag_drag() {
             size_dependant_layout();
 
 
-            document.onmousemove = (de) => handle_drag(de, startPos, startOffset, dragContainer, originalContainer);
-            document.onmouseup = (de) => mouse_up(de, dragContainer, originalContainer);
+            document.onmousemove = (de) => handle_drag(de, startPos, startOffset, dragContainer);
+            document.onmouseup = (de) => mouse_up(de, dragContainer, originalParent, hiddenElements);
 
         }
 
@@ -878,12 +1218,14 @@ function bind_tag_drag() {
 
 
 function size_dependant_layout(...exclusions) {
-    console.log("Size dependant layout:")
     if (!exclusions.includes(start_editor_layout)) {
         start_editor_layout();
     }
     if (!exclusions.includes(start_test_result_layout)) {
         start_test_result_layout();
+    }
+    if (!exclusions.includes(start_chat_layout)) {
+        start_chat_layout();
     }
     if (!exclusions.includes(md_layout)) {
         md_layout();
@@ -894,14 +1236,23 @@ function size_dependant_layout(...exclusions) {
     if (!exclusions.includes(finish_test_result_layout)) {
         finish_test_result_layout();
     }
+    if (!exclusions.includes(finish_chat_layout)) {
+        finish_chat_layout();
+    }
+    if (!exclusions.includes(tab_cover_layout)) {
+        tab_cover_layout();
+    }
+
+    
+
 
 }
 
 function position_dependant_layout(...exclusions) {
-    console.log("Position dependant layout:")
     if (!exclusions.includes(window_layout)) {
         window_layout();
     }
+    
     if (!exclusions.includes(bind_hSeperators)) {
         bind_hSeperators();
     }
@@ -910,6 +1261,21 @@ function position_dependant_layout(...exclusions) {
     }
     if (!exclusions.includes(bind_tab_pages)) {
         bind_tab_pages();
+    }
+    if (!exclusions.includes(insert_cr_logo)) {
+        insert_cr_logo();
+    }
+
+}
+
+function get_request(url, callback)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open("GET", url, true);
+    xmlHttp.send(null);
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
     }
 }
 
@@ -953,80 +1319,180 @@ function create_md_editor(container, defaultValue="", callback=null) {
         element: container,
         spellChecker: false,
         status: false,
-        hideIcons: ['guide', 'fullscreen', 'side-by-side'],
-        showIcons: ["code", "strikethrough", "table", "horizontal-rule"]
+        toolbar: false
+
     
     }, () => {
         return callback(editor)
     });
 }
 
+
+
 let mainEditor;
 let sampleTestsEditor;
-let submissionTestsEditor;
 let mainEditorContainer = document.getElementById("main-monaco-editor");
 let sampleTestsContainer = document.getElementById("sampletests-monaco-editor");
-let submissionTestsContainer = document.getElementById("submissiontests-monaco-editor");
+
+let challengeInfoDefault = "";
+let mainEditorDefault = "";
+let sampleTestsDefault = "";
 
 let challengeInfoMde;
 let challengeInfoMdeContainer = document.getElementById("challenge-info-mde");
 
-let mainOutput = document.getElementsByClassName("code-output")[0];
+let urlChallengeID;
+let joinRoomID;
 
-create_monaco_editor(mainEditorContainer, mainEditorDefault, (createdEditor) => {
-    mainEditor = createdEditor;
-});
-create_monaco_editor(sampleTestsContainer, sampleTestsDefault, (createdEditor) => {
-    sampleTestsEditor = createdEditor;
-});
-create_monaco_editor(submissionTestsContainer, submissionTestsDefault, (createdEditor) => {
-    submissionTestsEditor = createdEditor;
-    create_md_editor(challengeInfoMdeContainer, challengeInfoDefault, (createdEditor) => {
-        challengeInfoMde = createdEditor;
-        position_dependant_layout();
-        size_dependant_layout();
-        bind_tag_drag();
-        // window.addEventListener("resize", window_resized);
-        let resizeTimeout;
-        window.onresize = function(){
-        clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(size_dependant_layout, 100);
-        };
-    });
+
+if (window.location.pathname.split("/")[1] == "play") {
+    if (window.location.href.slice(-1) == "/") {
+        urlChallengeID = window.location.href.slice(0, -1).split("/").pop();
+    } else {
+        urlChallengeID = window.location.href.split("/").pop();
+    }
+} else if (window.location.pathname.split("/")[1] == "join") {
+    if (window.location.href.slice(-1) == "/") {
+        joinRoomID = window.location.href.slice(0, -1).split("/").pop();
+    } else {
+        joinRoomID = window.location.href.split("/").pop();
+    }
+} else {
+    alert("Invalid URL");
+}
+
+
+if (urlChallengeID) {
+    console.log("Creating room...")
+    socketHandler.create_room(urlChallengeID, (result) => {
+        if (result.error) {
+            alert(result.error)
+            return
+        }
+        let newLocation = window.location.origin + "/play/" + urlChallengeID + "/" + result.roomID;
+
+        history.replaceState({}, null, newLocation);
     
-});
+        create_monaco_editor(mainEditorContainer, mainEditorDefault, (createdEditor) => {
+            mainEditor = createdEditor;
+        });
+        create_monaco_editor(sampleTestsContainer, sampleTestsDefault, (createdEditor) => {
+            sampleTestsEditor = createdEditor;
+            create_md_editor(challengeInfoMdeContainer, challengeInfoDefault, (createdEditor) => {
+                challengeInfoMde = createdEditor;
+                position_dependant_layout();
+                size_dependant_layout();
+                bind_tag_drag();
+
+                // createdEditor.value("TEST");
+                // window.addEventListener("resize", window_resized);
+                let resizeTimeout;
+                window.onresize = function(){
+                clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(size_dependant_layout, 100);
+                };
+            });
+        });
+        isHost = true;
+
+        let optionsDiv = document.getElementById("options-page-content");
+        optionsDiv.insertAdjacentHTML("beforeend", `
+        <div id="host-options">
+            <span class="options-title">Host Options</span>
+            <hr>
+            <div>
+                <button id='start-game' class='highlight'>Start game!</button>
+            </div>
+        </div>
+        `)
+
+
+        lowerControlsMapping["Options"] = {
+            "Host Options": {
+                "Start game!": document.getElementById("start-game")
+            }
+        }
+        add_button_listeners();
+        
+    })
+    
+    
+    
+    
+} else if (joinRoomID) {
+    console.log("Joining room...")
+    socketHandler.join_room(joinRoomID, (result) => {
+        if (result.error) {
+            alert(result.error)
+            return
+        }
+        let newLocation = window.location.origin + "/play/" + result.challengeID + "/" + joinRoomID;
+
+        history.replaceState({}, null, newLocation);
+    
+        
+        create_monaco_editor(mainEditorContainer, mainEditorDefault, (createdEditor) => {
+            mainEditor = createdEditor;
+        });
+        create_monaco_editor(sampleTestsContainer, sampleTestsDefault, (createdEditor) => {
+            sampleTestsEditor = createdEditor;
+            create_md_editor(challengeInfoMdeContainer, challengeInfoDefault, (createdEditor) => {
+                challengeInfoMde = createdEditor;
+                position_dependant_layout();
+                size_dependant_layout();
+                bind_tag_drag();
+
+                // createdEditor.value("TEST");
+                // window.addEventListener("resize", window_resized);
+                let resizeTimeout;
+                window.onresize = function(){
+                clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(size_dependant_layout, 100);
+                };
+            });
+        });
+    
+
+        
+        
+        
+    })
+}
+
 
 
 let lowerControlsMapping = {}
 
 
 function set_output(result) {
-    console.log("GOT BACK", result);
-    console.log("recieved result");
-    mainOutput.value = "";
+    let stdoutSpan = document.getElementById("stdout");
+    let stderrSpan = document.getElementById("stderr");
+    let exitcodeSpan = document.getElementById("exitcode");
+
+    stdoutSpan.innerText = "";
+    stderrSpan.innerText = "";
+    exitcodeSpan.innerText = "";
+    stderrSpan.classList.remove("error");
+
     if (result.error) {
-        console.log("ERRROR");
         alert("There was an error running your code.")
-    } else if (result.stderr) {
-        console.log("Recieved stderr", result.stderr);
-        mainOutput.classList.add("error");
-        console.log(mainOutput.firstElementChild)
-        mainOutput.value = result.stderr
+        return
+    } 
+    if (result.stdout) {
+        stdoutSpan.innerText = result.stdout;
+
+    } 
+    if (result.stderr) {
+        stderrSpan.innerText = result.stderr
         
-    } else if (result.stdout) {
-        console.log("Recieved stdout", result.stdout);
-        mainOutput.classList.remove("error");
-        mainOutput.value = result.stdout;
     }
-    mainOutput.value += `\nProcess finished with exit code ${result.code}`;
+    exitcodeSpan.innerText = `\nProcess finished with exit code ${result.exitcode}`;
 }
 
 function make_element(tag, classList) {
     let element = document.createElement(tag);
     if (classList) {
-        for (let singleClass of classList) {
-            element.classList.add(singleClass);
-        }
+        element.classList.add(...classList)
     }
     return element
 }
@@ -1077,23 +1543,22 @@ function get_fail_info(setResult) {
     let a = setResult.a;
     let b = setResult.b;
     let x = setResult.x;
-    console.log(setResult, "X", x)
     if (assertion == "equal") {
         return [a, "should equal", b];
     } else if (assertion == "not_equal") {
         return [a, "should not equal", b];
     } else if (assertion == "true") {
-        return [x, "should be", true];
+        return [x, "should be", "True"];
     } else if (assertion == "false") {
-        return [x, "should be", false];
+        return [x, "should be", "False"];
     } else if (assertion == "is") {
         return [a, "should be", b];
     } else if (assertion == "is_not") {
         return [a, "should not be", b];
     } else if (assertion == "is_none") {
-        return [x, "should be", null];
+        return [x, "should be", "None"];
     } else if (assertion == "is_not_none") {
-        return [x, "should not be", null];
+        return [x, "should not be", "None"];
     } else if (assertion == "in") {
         return [a, "should be in", b];
     } else if (assertion == "not_in") {
@@ -1105,23 +1570,9 @@ function get_fail_info(setResult) {
     }
 }
 
-function string_repr(value) {
-    console.log("VAL", value, typeof(value))
-    if (typeof(value) == "string") {
-        return '"' + value + '"';
-    }
-    if (typeof(value) == "boolean") {
-        value = value.toString();
-        return value.charAt(0).toUpperCase() + value.slice(1);
-    }
-    if (value == null) {
-        return "None";
-    }
-    return value;
 
-}
-
-function set_test_results(result, resultsDiv) {
+function set_test_results(resultInfo, resultsDiv) {
+    console.log("SETTING TEST results", resultInfo, resultsDiv)
     function expand_group(group, recursive=false) {
         group.lastElementChild.style.display = null;
         group.firstElementChild.firstElementChild.classList.remove("fa-caret-right");
@@ -1148,9 +1599,11 @@ function set_test_results(result, resultsDiv) {
     }
 
     function sort_passed(group) {
-        console.log("SORTING PASSED FOR", group)
         if (!group.classList.contains("group-set")) {
+
             for (let child of group.lastElementChild.children) {
+
+                
                 sort_passed(child);
             }
         } else {
@@ -1160,6 +1613,7 @@ function set_test_results(result, resultsDiv) {
                     setResult.style.display = "none";
                 }
             }
+ 
         }
     }
 
@@ -1178,12 +1632,12 @@ function set_test_results(result, resultsDiv) {
         }
 
     }
+
     function sort_all(group) {
-        console.log("SORING ALL", group)
         // MAKE SOTRING REMOVE CURRENT SORTS OF CHILDREN
-        // for (let child of group.firstElementChild.lastElementChild.children) {
-        //     child.classList.remove("selected");
-        // }
+        for (let child of group.firstElementChild.lastElementChild.children) {
+            child.classList.remove("selected");
+        }
         if (!group.classList.contains("group-set")) {
             for (let child of group.lastElementChild.children) {
                 sort_all(child);
@@ -1199,7 +1653,6 @@ function set_test_results(result, resultsDiv) {
     }
 
     function handle_test_click(e) {
-        // console.log(e.target, "CLICKED", e.target.classList[1].includes("caret"))
         if (e.target.classList.length == 2) {
             if (!e.target.classList[1].includes("caret")) {
                 return
@@ -1241,7 +1694,7 @@ function set_test_results(result, resultsDiv) {
     }
 
     function handle_sort_clicked(e) {
-
+        let addClass = false;
         if (e.currentTarget.classList.contains("selected")) {
             for (let child of e.currentTarget.parentElement.children) {
                 child.classList.remove("selected");
@@ -1259,8 +1712,7 @@ function set_test_results(result, resultsDiv) {
             for (let child of e.currentTarget.parentElement.children) {
                 child.classList.remove("selected");
             }
-            e.currentTarget.classList.add("selected");
-            console.log("SORT", e.currentTarget.classList)
+            addClass = true;
             
             if (e.currentTarget.classList.contains("pass")) {
                 if (e.currentTarget.parentElement.parentElement.classList.contains("results-summary-container")) {
@@ -1283,37 +1735,43 @@ function set_test_results(result, resultsDiv) {
 
             }
         }
+        if (addClass) {
+            e.currentTarget.classList.add("selected");
+
+        }
+
     }
 
 
-    console.log("GOT RESULT OF SAMPLE TESTS:", result)
-    if (result.error) {
-        console.log("ERRROR");
+    set_output(resultInfo);
+    let resultsSummaryDiv = make_element("div", ["results-summary-container"])
+    resultsDiv.innerHTML = "";
+
+
+    if (resultInfo.stderr) {
+        resultsSummaryDiv.innerHTML = "<span class='fail'>Error running tests, check Output window.</span>";
+        resultsDiv.appendChild(resultsSummaryDiv);
+        return;
+    }
+
+    if (resultInfo.error) {
         alert("Your code could not be run. (error)")
-    } else if (result.stderr) {
-        console.log("Recieved stderr", result.stderr);
-        alert("GOT STDERR");
-        // outputArea.classList.add("error");
-        // outputArea.value = "Error running sample tests:\n" + result.stderr;
+        return
+    }
+  
         
-    } else if (result.stdout) {
-        // try {
-        parsedResult = JSON.parse(result.stdout.replaceAll("'False'", "false").replaceAll("'True'", "true").replaceAll("False", "false").replaceAll("True", "true").replaceAll("'", '"').replaceAll("None", "null"));
-        // } catch(err) {
-        //     // outputArea.value = "Error running sample tests:\nMake sure there are no print statements in your code.";
-        //     alert("NO PRINT STATEMENTS");
-        //     return;
-        // }
+    if (resultInfo.result) {
+
+        parsedResult = JSON.parse(resultInfo.result);
+   
         let totalPassed = 0;
         let totalFailed = 0;
         let totalTests = totalPassed + totalFailed;
-        console.log("GOT RESULTS", parsedResult)
 
-        resultsDiv.innerHTML = "";
 
         
 
-        let resultsBodyDiv = make_element("div", ["results-body"]);
+        let resultsBodyDiv = make_element("div", ["results-body", "output"]);
         let testGroupsDiv = make_element("div", ["test-groups"]);
         
         resultsBodyDiv.appendChild(testGroupsDiv);
@@ -1362,13 +1820,11 @@ function set_test_results(result, resultsDiv) {
                 groupSetDiv.appendChild(groupSetDivTitle);
                 groupSetDiv.appendChild(setResultsDiv);
 
-                // console.log(groupSet)
                 for (let setResultName in groupSet) {
                     let setResult = groupSet[setResultName];
                     let setResultDiv;
-                    console.log("RESULT", setResult.result)
 
-                    if (setResult.result) {
+                    if (setResult.result == "True") {
                         setResultDiv = make_element("div", ["set-result", "pass"]);
                         let setResultDivText = make_element("span");
                         setResultDivText.innerText = "Test passed!";
@@ -1392,16 +1848,16 @@ function set_test_results(result, resultsDiv) {
                         setResultInfo.style.display = "none";
                         if (failInfo.length == 3) {
                             let aCode = make_element("code")
-                            aCode.innerText = string_repr(failInfo[0]);
-                            let bCode = make_element("code") 
-                            bCode.innerText = string_repr(failInfo[2]);
+                            aCode.innerText = failInfo[0];
+                            let bCode = make_element("code")
+                            bCode.innerText = failInfo[2];
                             setResultInfo.appendChild(aCode);
                             setResultInfo.innerHTML += " " + failInfo[1] + " ";
                             setResultInfo.appendChild(bCode);
                             
                         } else if (failInfo.length == 2) {
                             let xCode = make_element("code") 
-                            xCode.innerText = string_repr(failInfo[0]);
+                            xCode.innerText = failInfo[0];
                             setResultInfo.appendChild(xCode);
                             setResultInfo.innerHTML += " " + failInfo[1] + " ";
                         }
@@ -1431,11 +1887,9 @@ function set_test_results(result, resultsDiv) {
             testGroupDivTitle.appendChild(testGroupDivSummarySpan);
             testGroupsDiv.appendChild(testGroupDiv);
 
-
         }
 
 
-        let resultsSummaryDiv = make_element("div", ["results-summary-container"])
         let resultsSummarySpan = make_results_info(totalPassed, totalFailed, handle_expand_clicked, handle_sort_clicked, false);
 
         resultsSummaryDiv.appendChild(resultsSummarySpan)
@@ -1446,42 +1900,85 @@ function set_test_results(result, resultsDiv) {
     }
 }
 
-// Lower controls bindings
-function bind_lower_controls() {
-
-
-    function button_clicked(button) {
-        // Sample Tests
-        if (button == lowerControlsMapping["Sample Tests"]["Run Tests"]) {
-            socketHandler.execute_tests(sampleTestsEditor.getValue(), mainEditor.getValue(), (result) => {
-                set_test_results(result, document.getElementById("sample-test-results"));
-                size_dependant_layout();
-
-            });
-
-        } else if (button == lowerControlsMapping["Sample Tests"]["Test Cases"]["Run Code"]) {
-            socketHandler.execute_tests(sampleTestsEditor.getValue(), mainEditor.getValue(), set_output);  
+function add_button_listeners(mappings=lowerControlsMapping) {
+    for (let title in mappings) {
+        if (mappings[title].tagName == "BUTTON") {
+            mappings[title].onclick = (e) => button_clicked(mappings[title]);
+        } else {
+            add_button_listeners(mappings[title]);
 
         }
-        // Submission Tests
-        if (button == lowerControlsMapping["Submission Tests"]["Run Tests"]) {
-            socketHandler.execute_tests(submissionTestsEditor.getValue(), mainEditor.getValue(), (result) => {
-                set_test_results(result, document.getElementById("submission-test-results"));
-                size_dependant_layout();
-            });
+    }
+}
 
-        } else if (button == lowerControlsMapping["Submission Tests"]["Test Cases"]["Run Code"]) {
-            socketHandler.execute_tests(submissionTestsEditor.getValue(), mainEditor.getValue(), set_output);  
-
+function check_button(button, ...path) {
+    let currentSelection = lowerControlsMapping;
+    for (let title of path) {
+        if (currentSelection.hasOwnProperty(title)) {
+            currentSelection = currentSelection[title];
         }
-        // Solution
-        if (button == lowerControlsMapping["Solution"]["Run Code"]) {
-            socketHandler.execute_code(mainEditor.getValue(), set_output);  
+    }
+    return button == currentSelection;
+}
 
-        }
 
+
+function button_clicked(button) {
+    console.log(lowerControlsMapping)
+    // Options
+    if (check_button(button, "Options", "Host Options", "Start game!")) {
+        socketHandler.start_game((result) => {
+            if (result.error) {
+                alert(result.error);
+            } else {
+                console.log("STARTED SUCCESFULLY!");
+                button.classList.remove("highlight");
+                button.disabled = true;
+            }
+        });
+    }
+
+    // Chat
+    if (check_button(button, "Chat", "Send")) {
+        let message = button.previousElementSibling.value;
+        button.previousElementSibling.value = "";
+        console.log("SENDING", message);
+        socketHandler.send_chat(message);
+    }
+    
+    // Sample Tests
+    if (check_button(button, "Example Tests","Run Tests")) {
+        socketHandler.execute_tests(sampleTestsEditor.getValue(), mainEditor.getValue(), (result) => {
+            set_test_results(result, document.getElementById("sample-test-results"));
+            size_dependant_layout();
+
+        });
+
+    } else if (check_button(button, "Example Tests", "Test Cases", "Run Code")) {
+        socketHandler.execute_tests(sampleTestsEditor.getValue(), mainEditor.getValue(), set_output);
+        size_dependant_layout();
 
     }
+    // Submission Tests
+    if (check_button(button, "Submission", "Submit")) {
+        console.log("Submitting...")
+        socketHandler.submit(mainEditor.getValue());
+
+    }
+    // Solution
+    if (check_button(button, "Solution", "Run Code")) {
+        socketHandler.execute_code(mainEditor.getValue(), set_output);
+        size_dependant_layout();
+
+    }
+
+
+}
+
+
+
+function bind_lower_controls() {
+
 
 
     // OMG THIS WORKED FIRST TRY!!!!!
@@ -1489,148 +1986,51 @@ function bind_lower_controls() {
         for (let container of parent.children) {
             if (container.classList.contains("container")) {
                 for (let window of container.children) {
-                    for (let tab of window.firstElementChild.children) {
-                        let page = page_from_tab(tab);
-                        if (page.children.length == 2) {
-                            for (let button of page.lastElementChild.children) {
-                                currentObject[tab.innerText] = {};
-                                currentObject[tab.innerText][button.innerText] = button;
-                                button.onclick = (e) => button_clicked(button);
+                    if (window.classList.contains("window")) {
+                        let tabContainer;
+                        for (let child of window.children) {
+                            if (child.classList.contains("tabs-container")) {
+                                tabContainer = child;
                             }
                         }
-                        if (page.firstElementChild.classList.contains("outer")) {
-                            create_mappings(page.firstElementChild.firstElementChild, currentObject[tab.innerText])
-                        }
+                        for (let tab of tabContainer.children) {
+                            if (tab.classList.contains("tab")) {
+                                let page = page_from_tab(tab);
+                                if (page.children.length == 2) {
+                                    for (let button of page.lastElementChild.children) {
+                                        currentObject[tab.innerText] = {};
+                                        currentObject[tab.innerText][button.innerText] = button;
+                                        if (button.tagName == "INPUT") {
+                                            console.log("ITS AN NPUT")
+                                            button.onkeydown = (e) => {
+                                                if (e.key == "Enter") {
+                                                    button_clicked(button.nextElementSibling);
 
+                                                }
+                                            } 
+                                        }
+                                    }
+                                }
+                                if (page.firstElementChild.classList.contains("outer")) {
+                                    create_mappings(page.firstElementChild.firstElementChild, currentObject[tab.innerText])
+                                }
+                            }
+                            
+    
+                        }
                     }
+                    
                 }
             }
         }
     }
 
     create_mappings(document.body.firstElementChild.firstElementChild);
-
-    console.log(lowerControlsMapping, "DID IT")
-
-    // let lowerControlsContainers = document.getElementsByClassName("lower-controls");
-
-
-
-    // for (let container of lowerControlsContainers) {
-    //     // let containerName = container.parentElement.parentElement.parentElement.firstElementChild.children[Array.from(container.parentElement.parentElement.children).indexOf(container.parentElement)].innerText;
-    //     for (let button of container.children) {
-    //         lowerControlsMapping[containerName]
-    //         button.onclick = (e) => button_clicked(e);
-    //     }
-    // }
+    console.log("MAPPINGS", lowerControlsMapping)
+    add_button_listeners();
 }
 
 bind_lower_controls();
-
-
-class SocketHandler {
-    constructor() {
-        this.socket = io();
-        this.bind_messages();
-    }
-
-    bind_messages() {
-        this.socket.on("connect", this.handle_connect);
-        this.socket.on("disconnect", this.handle_disconnect);
-    }
-    
-
-    execute_tests(tests, solution, callback) {
-        this.socket.emit("execute tests", {
-            tests: tests,
-            solution: solution,
-            stdin: ""
-        }, (result) => {
-            return callback(result);
-        })
-
-    }
-
-    // excecute_test_code(code, callback) {
-    //     console.log("SENDING", code)
-    //     this.socket.emit("execute test code", {
-    //         code: code,
-    //         stdin: ""
-    //     }, (result) => {
-    //         return callback(result);
-    //     })
-
-    // }
-
-    execute_code(code, callback) {
-        console.log("SENDING", code)
-        this.socket.emit("execute code", {
-            code: code,
-            stdin: ""
-        }, (result) => {
-            return callback(result);
-        })
-
-    }
-
-    // emit(...messages, callback) {
-    //     if (callback) {
-    //         this.socket.emit(...messages, callback);
-    //     }
-    // }
-
-    handle_callback(...args) {
-
-    }
-
-    handle_connect() {
-        console.log("Connected to the server!");
-    }
-
-    handle_disconnect() {
-        console.log("Disconnected from the server!");
-    }
-
-    // Other handle functions here
-    
-
-}
-
-const socketHandler = new SocketHandler();
-
-
-// Socket handlers
-function handle_code_result(result) {
-    console.log("recieved result");
-    if (result.error) {
-        console.log("ERRROR");
-        alert("There was an error running your code.")
-    } else if (result.stderr) {
-        console.log("Recieved stderr", result.stderr);
-        outputArea.classList.add("error");
-        outputArea.value = result.stderr;
-        
-    } else if (result.stdout) {
-        console.log("Recieved stdout", result.stdout);
-        outputArea.classList.remove("error");
-        outputArea.value = result.stdout;
-    }
-    outputArea.value += `\nProcess finished with exit code ${result.code}`;
-}
-
-
-function run_clicked() {
-    outputArea.value = "";
-    socket.emit("execute", {
-        "code": monacoEditors[0].getValue(),
-        "stdin": ""
-    }, handle_code_result)
-}
-
-// socket.on("connect", () => {
-//     console.log("Connected to server!");
-// })
-
 
 
 

@@ -1,0 +1,8 @@
+.window {
+    box-sizing: border-box;
+    height: 100%;
+    /* margin: 5px; */
+}
+body {
+    padding: 5px;
+}

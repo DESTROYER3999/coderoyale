@@ -15771,7 +15771,11 @@
                 toolbar_div.className += " disabled-for-preview";
             }
         }
-        preview.innerHTML = editor.options.previewRender(editor.value(), preview);
+        if (document.getElementsByClassName("title-input").length) {
+          preview.innerHTML = editor.options.previewRender("# " + document.getElementsByClassName("title-input")[0].innerText + "\n" + editor.value(), preview);
+        } else {
+          preview.innerHTML = editor.options.previewRender(editor.value(), preview);
+        }
     
         // Turn off side by side if needed
         var sidebyside = cm.getWrapperElement().nextSibling;

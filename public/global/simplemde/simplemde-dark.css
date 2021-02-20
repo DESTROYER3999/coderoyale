@@ -233,25 +233,6 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {
     height: auto;
 }
 
-::-webkit-scrollbar {
-    width: 13px;
-    background-color: #1E1E1E;
-
-}
-
-
-::-webkit-scrollbar-thumb {
-    background-color: #424242;
-
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background-color: #4E4E4E;
-}
-
-::-webkit-scrollbar-thumb:active {
-    background-color: #5E5E5E;
-}
 
 
 
@@ -815,7 +796,7 @@ span.CodeMirror-selectedtext {
 }
 
 .disabled-for-preview + div ::-webkit-scrollbar {
-    width: 13px;
+    width: 14px;
     border-left: 1px solid #525252;
 }
 .disabled-for-preview + div ::-webkit-scrollbar-thumb {

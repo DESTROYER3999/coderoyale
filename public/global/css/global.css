@@ -1,0 +1,264 @@
+body {
+    background-color: #151515;
+    color: #aaaaaa;
+    font-family: 'Montserrat', sans-serif;
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+    height: 100%;
+
+    overflow: hidden;
+}
+
+.logo {
+    height: 25px;
+    margin-right: 10px;
+    margin-left: 5px;
+    /* transform: translate(0px, -2px); */
+}
+
+html {
+    margin: 0px;
+    height: 100%;
+}
+.fail {
+    color: #f44747;
+}
+
+.pass {
+    color: #608b4e;
+}
+
+
+.lower-controls > button {
+    margin: 5px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+}
+
+button {
+    width: 110px;
+    height: 30px;
+    padding: 0px;
+
+    background-color: #444444;
+    outline: none;
+    border: 1px solid #555555;
+    color: #aaaaaa;
+    border-radius: 5px;
+    cursor: default!important;
+    font-size: 16px;
+    font-family: 'Montserrat', sans-serif;
+
+}
+
+
+button:disabled {
+    cursor: not-allowed!important;
+}
+
+::selection {
+    background-color: #264F78;
+}
+
+input {
+    padding: 5px;
+    background-color: #444444;
+    outline: none;
+    border: 1px solid #555555;
+    color: #aaaaaa;
+    border-radius: 5px;
+    font-size: 16px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.input-container > input {
+    width: 100%;
+}
+
+.input-container > *:not(.input-container :last-child) {
+    margin-right: 5px;
+}
+
+
+input:focus {
+    border-color: #FFAB00;
+
+}
+
+::-webkit-scrollbar {
+    width: 13px;
+    background-color: #1E1E1E;
+    border-left: 1px solid #393939;
+}
+
+
+::-webkit-scrollbar-thumb {
+    background-color: #424242;
+
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #4E4E4E;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background-color: #5E5E5E;
+}
+
+button:hover {
+    cursor: pointer;
+    background-color: #3a3a3a;
+}
+
+
+
+button:active {
+    font-size: 110%;
+}
+
+
+.tabs-container {
+    padding: 5px 5px 0px 5px;
+    width: auto;
+    border-bottom: 1px solid #555;
+    display: flex;
+    flex-shrink: 1;
+    /* position: relative; */
+    overflow: hidden;
+    /* overflow-x: hidden;
+    overflow-y: visible; */
+    justify-content: flex-start;
+
+    background-color: #1E1E1E;
+}
+
+.tab {
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+    border-bottom: none;
+    margin: 0px;
+    margin-right: 5px;
+    width: 200px;
+    height: 33px;
+    display: block;
+    background-color: #323232;
+    z-index: 10;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0px 5px 0px 5px;
+    /* transform: translate(0px, 1px); */
+
+}
+/* 
+.window::before {
+    
+} */
+.tab-cover {
+    position: absolute;
+    height: 1px;
+    background-color: #1E1E1E;
+    z-index: 100;
+}
+
+
+.tab:hover {
+    background-color: #2a2a2a;
+}
+.tab.selected {
+    /* height: 35px; */
+    /* background-color: #444444; */
+    background-color: #1E1E1E;
+    border-color: #FFAB00;
+    /* border-bottom: 1px solid #1E1E1E; */
+
+}
+
+
+
+button.highlight {
+    border: none;
+    background-color: #FFAB00;
+    color: #1E1E1E;
+    font-weight: bold!important;
+    cursor: pointer!important;
+
+}
+button.highlight:hover {
+    background-color: #d48e00;
+}
+
+
+.tabs-container button:last-of-type {
+    margin-right: 0px;
+}
+
+
+.lower-controls {
+    /* padding-top: 1px; */
+    display: flex;
+    padding-bottom: 5px;
+    flex-wrap: wrap;
+    border-top: 1px solid #555;
+    background-color: #151515;
+}
+
+#options-page-content {
+    position: relative;
+    padding: 5px;
+
+}
+#options-page-content > .ping-label {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.tab, .seperator, button, button > span, .test-group > span:first-of-type, .group-set > span:first-of-type, .set-result > span:first-of-type, .results-summary, #player-list > :last-child > span > span {
+    user-select: none; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none;
+
+}
+
+.pages {
+    height: 100%;
+}
+
+.page {
+    display: none;
+    height: 100%;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+}
+.page.selected {
+    display: grid;
+}
+
+
+.window {
+    display: grid;
+    height: auto;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 1fr;
+    border: 2px solid #555555;
+    border-radius: 6px;
+    overflow: hidden;
+    /* margin: 5px; */
+}
+
+
+
+.page-content {
+    height: auto;
+    width: auto;
+    background-color: #1E1E1E;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: 1fr;
+    /* padding: 5px; */
+}
