@@ -177,7 +177,7 @@ print("${runID}", json.dumps(cr_test.TestGroup._TestGroup__run()))
 
 
 function execute_code(file, callback) {
-    const ls = spawn("python", [__dirname + "\\" + file]);
+    const ls = spawn("python", [file]);
     // ls.stdin.write(info.stdin);
     // ls.stdin.end();
     let result = {
