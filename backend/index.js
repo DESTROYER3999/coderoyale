@@ -30,7 +30,7 @@ app.get("/edit/:challengeID", (req, res) => {
 
 app.get("/browse", (req, res) => {
     let displayChallenges = {};
-    read_json("storage/challenges.json", (challenges) => {
+    read_json("/storage/challenges.json", (challenges) => {
         for (let challengeID in challenges) {
             let info = challenges[challengeID];
             displayChallenges[challengeID] = {
