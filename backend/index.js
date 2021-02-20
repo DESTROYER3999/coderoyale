@@ -95,13 +95,13 @@ function make_id(length, exclude=null) {
 }
 
 function write_file(code, filename, callback) {
-    fs.writeFile(__dirname + "\\" + filename, code, (error) => {
+    fs.writeFile(filename, code, (error) => {
         return callback(error);
     });
 }
 
 function read_json(filename, callback) {
-    fs.readFile(__dirname + "\\" + filename, (err, data) => {
+    fs.readFile(filename, (err, data) => {
         if (err) throw err;
         return callback(JSON.parse(data));
     });
