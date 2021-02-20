@@ -402,7 +402,7 @@ class SocketHandler {
         console.log("EXECING CODE", info)
         write_file(info.code, path.join(__dirname, '..', 'backend', 'python', 'solution.py'), (error) => {
             if (error) return console.log(error);
-            execute_code("python/solution.py", (result) => {
+            execute_code(path.join(__dirname, '..', 'backend', 'python', 'solution.py'), (result) => {
                 callback(result);
                 console.log("Sent result back to client.");
             });
