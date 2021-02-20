@@ -17,7 +17,9 @@ app.use('/join/*', express.static('public/play.html'));
 
 let rooms = {};
 
-
+console.log("DIRNAME:::", __dirname);
+console.log("BACK A THING", path.join(__dirname, '..'))
+console.log("THE USUAL", path.join(__dirname, '..', 'backend', 'python'))
 // app.use("/game", express.static("public/challenge.html"))
 
 app.get("/edit/:challengeID", (req, res) => {
