@@ -66,6 +66,10 @@ FF1B1C */
 
 }
 
+#create-btn {
+    width: 150px;
+    margin: 5px;
+}
 
 #browse-content {
     overflow-y: scroll;

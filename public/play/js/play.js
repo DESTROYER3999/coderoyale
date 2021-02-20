@@ -1423,7 +1423,7 @@ if (urlChallengeID) {
     console.log("Joining room...")
     socketHandler.join_room(joinRoomID, (result) => {
         if (result.error) {
-            alert(result.error)
+            window.location.pathname = "/noroom.html";
             return
         }
         let newLocation = window.location.origin + "/play/" + result.challengeID + "/" + joinRoomID;

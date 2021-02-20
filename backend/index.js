@@ -39,7 +39,6 @@ app.get("/browse", (req, res) => {
                 title: info.title,
                 instructions: info.instructions
             }
-            
         }
         res.json(displayChallenges);
     });
@@ -435,7 +434,6 @@ class SocketHandler {
                     error: null,
                     challengeID: currentID
                 });
-
             });
         })
     }

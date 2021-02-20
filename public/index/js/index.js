@@ -174,4 +174,9 @@ size_dependant_layout();
 
 document.getElementsByClassName("logo")[0].onload = () => size_dependant_layout();
 
-
+document.getElementById("join-button").onclick = (e) => {
+    let inputVal = e.currentTarget.previousElementSibling.lastElementChild.value.trim();
+    if (inputVal) {
+        window.location.href = window.location.origin + '/join/' + inputVal;
+    }
+}
