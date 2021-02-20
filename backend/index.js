@@ -30,7 +30,7 @@ app.get("/edit/:challengeID", (req, res) => {
 
 app.get("/browse", (req, res) => {
     let displayChallenges = {};
-    read_json("/storage/challenges.json", (challenges) => {
+    read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
         for (let challengeID in challenges) {
             let info = challenges[challengeID];
             displayChallenges[challengeID] = {
@@ -46,7 +46,7 @@ app.get("/browse", (req, res) => {
 
 app.get("/play/:challengeID", (req, res) => {
     let challengeID = req.params.challengeID;
-    read_json("storage/challenges.json", (challenges) => {
+    read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
         if (!(challenges.hasOwnProperty(challengeID))) {
             return res.sendFile(path.join(__dirname, '..', 'public', 'nochallenge.html'))
         }
@@ -120,10 +120,10 @@ ${tests}
 print("${runID}", json.dumps(cr_test.TestGroup._TestGroup__run()))
 `  
 
-    write_file(newTests, "python/tests.py", (error) => {
+    write_file(newTests, path.join(__dirname, '..', 'backend', 'python', 'tests.py'), (error) => {
         if (error) return console.log(error);
-        write_file(solution, "python/solution.py", (error) => {
-            execute_code("python/tests.py", (result) => {
+        write_file(solution, path.join(__dirname, '..', 'backend', 'python', 'solution.py'), (error) => {
+            execute_code(path.join(__dirname, '..', 'backend', 'python', 'tests.py'), (result) => {
                 console.log("RESUT OF RUN!", result);
                 let parsedResult = {
                     result: null,
@@ -267,7 +267,7 @@ class SocketHandler {
             testResults: null,
             totalTime: null
         }
-        read_json("storage/challenges.json", (challenges) => {
+        read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
             let submissionTests = challenges[challengeID].submissionTests;
             run_tests(submissionTests, solution, (results) => {
                 console.log("GOT SUBMISSION RESULTS!");
@@ -312,7 +312,7 @@ class SocketHandler {
             })
         }
 
-        read_json("storage/challenges.json", (challenges) => {
+        read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
             if (!challenges.hasOwnProperty(rooms[roomID].challengeID)) {
                 return callback({
                     error: "Challenge doesn't exist"
@@ -381,7 +381,7 @@ class SocketHandler {
     }
 
     handle_challenge_info(challengeID, callback) {
-        read_json("storage/challenges.json", (challenges) => {
+        read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
             if (!challenges.hasOwnProperty(challengeID)) {
                 return callback({
                     error: "Challenge doesn't exist",
@@ -398,7 +398,7 @@ class SocketHandler {
 
     handle_execute_code(info, callback) {
         console.log("EXECING CODE", info)
-        write_file(info.code, "python/solution.py", (error) => {
+        write_file(info.code, path.join(__dirname, '..', 'backend', 'python', 'solution.py'), (error) => {
             if (error) return console.log(error);
             execute_code("python/solution.py", (result) => {
                 callback(result);
@@ -415,12 +415,12 @@ class SocketHandler {
 
     handle_save_challenge(info, callback) {
         console.log("SAVING CHALLENGE WITH TITLE", info);
-        read_json("storage/challenges.json", (currentChallenges) => {
+        read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (currentChallenges) => {
             console.log("Current::", currentChallenges)
             let currentID = make_id(10, Object.keys(currentChallenges));
 
             currentChallenges[currentID] = info;
-            write_json(currentChallenges, "storage/challenges.json", (error) => {
+            write_json(currentChallenges, path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (error) => {
                 if (error) {
                     callback({
                         error: "Couldn't create challenge",
