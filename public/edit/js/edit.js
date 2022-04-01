@@ -1530,6 +1530,8 @@ function bind_lower_controls() {
                     return
                 }
                 console.log("Success!", result.challengeID);
+                alert('Challenge published! Find it in the "Browse" tab. Now redirecting you home...');
+                window.location.href = "/";
 
 
             });
