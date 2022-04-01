@@ -80,7 +80,7 @@ function browse_clicked() {
 								<hr>
 								<div class="challenge-options">
                                 <a href="/play/${challengeID}"><button>Play</button></a>
-									<button>Edit</button>
+									<button onclick="alert('Coming soon!')">Edit</button>
 								</div>
 							</div>
             `

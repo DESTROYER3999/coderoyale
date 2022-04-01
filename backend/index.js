@@ -4,11 +4,44 @@ const http = require("http");
 const socketio = require("socket.io");
 const fs = require("fs");
 const { spawn } = require("child_process");
+const mysql = require("mysql");
+
 
 
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
+
+
+db = mysql.createConnection({
+    host: "us-cdbr-east-05.cleardb.net",
+    user: "b40ab652e7a91e",
+    password: "f168b1d7",
+    database: "heroku_4cef9eefc05a293"
+});
+db.connect((err) => {
+    if (err) {
+        console.log("Error connecting to DB: ");
+        console.log(err);
+        return;
+    }
+
+    console.log("Connection to DB established!");
+    setInterval(function () {
+        db.query("SELECT 1");
+    }, 5000);
+
+});
+function makePost(sql, callback=null) {
+    db.query(sql, function(err, result) {
+        if (err) throw err;
+
+        var parsedResult = JSON.parse(JSON.stringify(result));
+        if (callback) {
+            return callback(parsedResult);
+        }
+    });
+}
 
 app.use(express.static("public"));
 app.use('/*/monaco-editor', express.static('public/global/monaco-editor'));
@@ -32,28 +65,48 @@ app.get("/edit/:challengeID", (req, res) => {
 
 app.get("/browse", (req, res) => {
     let displayChallenges = {};
-    read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
-        for (let challengeID in challenges) {
-            let info = challenges[challengeID];
-            displayChallenges[challengeID] = {
-                title: info.title,
-                instructions: info.instructions
+    makePost("SELECT * FROM challenges", (challenges) => {
+        console.log("Got challneges from db");
+
+        for (let challenge of challenges) {
+            displayChallenges[challenge.id] = {
+                title: challenge.title,
+                instructions: challenge.instructions
             }
         }
         res.json(displayChallenges);
+
     });
+
+    // read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
+    //     for (let challengeID in challenges) {
+    //         let info = challenges[challengeID];
+    //         displayChallenges[challengeID] = {
+    //             title: info.title,
+    //             instructions: info.instructions
+    //         }
+    //     }
+    //     res.json(displayChallenges);
+    // });
 
 })
 
 app.get("/play/:challengeID", (req, res) => {
     let challengeID = req.params.challengeID;
-    read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
-        if (!(challenges.hasOwnProperty(challengeID))) {
-            return res.sendFile(path.join(__dirname, '..', 'public', 'nochallenge.html'))
-        }
+    if (!challengeID) return res.sendFile(path.join(__dirname, '..', 'public', 'nochallenge.html'));
+
+    makePost(`SELECT * FROM challenges WHERE id='${challengeID}'`, (result) => {
+        if (!result.length) return res.sendFile(path.join(__dirname, '..', 'public', 'nochallenge.html'));
         return res.sendFile(path.join(__dirname, '..', 'public', 'play.html'))
 
     })
+    // read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
+    //     if (!(challenges.hasOwnProperty(challengeID))) {
+    //         return res.sendFile(path.join(__dirname, '..', 'public', 'nochallenge.html'))
+    //     }
+    //     return res.sendFile(path.join(__dirname, '..', 'public', 'play.html'))
+
+    // })
 
     // res.redirect(`/play/${challengeID}/ree`);
 });
@@ -268,8 +321,11 @@ class SocketHandler {
             testResults: null,
             totalTime: null
         }
-        read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
-            let submissionTests = challenges[challengeID].submissionTests;
+
+        makePost(`SELECT submissionTests FROM challenges WHERE id='${challengeID}'`, (result) => {
+            if (!result.length) return;
+
+            let submissionTests = result[0].submissionTests;
             run_tests(submissionTests, solution, (results) => {
                 console.log("GOT SUBMISSION RESULTS!");
                 overview.testResults = results;
@@ -284,7 +340,24 @@ class SocketHandler {
                 });
 
             })
-        })
+        });
+        // read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
+        //     let submissionTests = challenges[challengeID].submissionTests;
+        //     run_tests(submissionTests, solution, (results) => {
+        //         console.log("GOT SUBMISSION RESULTS!");
+        //         overview.testResults = results;
+        //         overview.totalTime = totalTime;                
+        //         io.in(roomID).emit("overview", {
+        //             client: this.id,
+        //             overview: overview
+        //         });
+        //         io.in(roomID).emit("receive chat", {
+        //             sender: "SERVER",
+        //             message: this.id + " submitted in " + totalTime + "ms"
+        //         });
+
+        //     })
+        // })
     }
     
     handle_send_chat(message) {
@@ -313,25 +386,47 @@ class SocketHandler {
             })
         }
 
-        read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
-            if (!challenges.hasOwnProperty(rooms[roomID].challengeID)) {
-                return callback({
-                    error: "Challenge doesn't exist"
-                })
-            }
-            delete challenges[rooms[roomID].challengeID].submissionTests;
-            io.in(roomID).emit("game start", challenges[rooms[roomID].challengeID]);
+        makePost(`SELECT * FROM challenges WHERE id='${rooms[roomID].challengeID}'`, (result) => {
+            if (!result.length) return callback({
+                error: "Challenge doesn't exist"
+            });
+            let challenge = result[0];
+            delete challenge.id;
+            delete challenge.submissionTests;
+
+            io.in(roomID).emit("game start", challenge);
             io.in(roomID).emit("receive chat", {
                 sender: "SERVER",
                 message: "The host started the game!"
             });
             rooms[roomID].startTime = Date.now();
-
+    
             return callback({
                 error: null
             })
-  
+
         })
+
+        
+        // read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
+        //     if (!challenges.hasOwnProperty(rooms[roomID].challengeID)) {
+        //         return callback({
+        //             error: "Challenge doesn't exist"
+        //         })
+        //     }
+        //     delete challenges[rooms[roomID].challengeID].submissionTests;
+        //     io.in(roomID).emit("game start", challenges[rooms[roomID].challengeID]);
+        //     io.in(roomID).emit("receive chat", {
+        //         sender: "SERVER",
+        //         message: "The host started the game!"
+        //     });
+        //     rooms[roomID].startTime = Date.now();
+
+        //     return callback({
+        //         error: null
+        //     })
+  
+        // })
     }
 
     handle_join_room(roomID, callback) {
@@ -382,19 +477,32 @@ class SocketHandler {
     }
 
     handle_challenge_info(challengeID, callback) {
-        read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
-            if (!challenges.hasOwnProperty(challengeID)) {
-                return callback({
-                    error: "Challenge doesn't exist",
-                    challengeInfo: null
-                })
-            }
-            delete challenges[challengeID].submissionTests;
+        makePost(`SELECT * FROM challenges WHERE id='${challengeID}'`, (result) => {
+            if (!result.length) return callback({
+                error: "Challenge doesn't exist",
+                challengeInfo: null
+            });
+            let challengeInfo = result[0];
+            delete challengeInfo.submissionTests;
+            delete challengeInfo.id;
             callback({
                 error: null,
                 challengeInfo: challenges[challengeID]
             })
-        })
+        });
+        // read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (challenges) => {
+        //     if (!challenges.hasOwnProperty(challengeID)) {
+        //         return callback({
+        //             error: "Challenge doesn't exist",
+        //             challengeInfo: null
+        //         })
+        //     }
+        //     delete challenges[challengeID].submissionTests;
+        //     callback({
+        //         error: null,
+        //         challengeInfo: challenges[challengeID]
+        //     })
+        // })
     }
 
     handle_execute_code(info, callback) {
@@ -416,26 +524,52 @@ class SocketHandler {
 
     handle_save_challenge(info, callback) {
         console.log("SAVING CHALLENGE WITH TITLE", info);
-        read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (currentChallenges) => {
-            console.log("Current::", currentChallenges)
-            let currentID = make_id(10, Object.keys(currentChallenges));
 
-            currentChallenges[currentID] = info;
-            write_json(currentChallenges, path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (error) => {
-                if (error) {
-                    callback({
-                        error: "Couldn't create challenge",
-                        challengeID: null
-                    });
-                    throw err
-                }
+        makePost("SELECT id FROM challenges", (result) => {
+            console.log(result);
+            let currentChallengeIDs = [];
+            for (let idItem of result) {
+                currentChallengeIDs.push(idItem.id);
+            }
+
+            console.log("Current::", currentChallengeIDs)
+            let currentID = make_id(10, Object.keys(currentChallengeIDs));
+        
+            // currentChallenges[currentID] = info;
+
+            makePost(`INSERT INTO challenges (id, title, instructions, exampleTests, submissionTests, initialSolution) VALUES ('${currentID}', '${info.title}', '${info.instructions}', '${info.exampleTests}', '${info.submissionTests}', '${info.initialSolution}')`, (result) => {
                 console.log("Succes creating challenge!")
                 return callback({
                     error: null,
                     challengeID: currentID
                 });
             });
-        })
+        });
+
+        // makePost(`INSERT INTO challenges (id, title, instructions, exampleTests, submissionTests, initialSolution) VALUES ('${}', 'instruz', 'boi chlng', 'extests', 'subtests', 'initsol')`, (result) => {
+
+        // });
+
+        // read_json(path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (currentChallenges) => {
+        //     console.log("Current::", currentChallenges)
+        //     let currentID = make_id(10, Object.keys(currentChallenges));
+
+        //     currentChallenges[currentID] = info;
+        //     write_json(currentChallenges, path.join(__dirname, '..', 'backend', 'storage', 'challenges.json'), (error) => {
+        //         if (error) {
+        //             callback({
+        //                 error: "Couldn't create challenge",
+        //                 challengeID: null
+        //             });
+        //             throw err
+        //         }
+        //         console.log("Succes creating challenge!")
+        //         return callback({
+        //             error: null,
+        //             challengeID: currentID
+        //         });
+        //     });
+        // })
     }
 
     handle_connect() {

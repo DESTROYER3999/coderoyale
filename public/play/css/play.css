@@ -336,6 +336,15 @@ hr {
 
 .set-result.fail > span:last-of-type {
     font-size: 14px;
+    /* white-space: pre; */
+}
+.set-result.fail > span:last-of-type > code:first-of-type {
+    white-space: pre;
+}
+.set-result.fail > span:last-of-type > code:last-of-type {
+    overflow-wrap: anywhere;
+}
+.set-result.fail > span:last-of-type > span {
     white-space: pre;
 }
 

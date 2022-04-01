@@ -130,15 +130,21 @@ function finish_editor_layout() {
 }
 
 function insert_cr_logo() {
+    let tabsContainers = document.getElementsByClassName("tabs-container");
     let firstContainer = document.getElementById("maincontent").firstElementChild.firstElementChild;
     let tabsContainer = firstContainer.firstElementChild.nextElementSibling.firstElementChild.nextElementSibling;
-    if (!tabsContainer.firstElementChild.classList.contains("logo")) {
-        tabsContainer.insertAdjacentHTML("afterBegin", '<a href="/"><img class="logo" src="/global/images/logo.png"></a>');
-        document.getElementsByClassName("logo")[0].onload = () => tab_cover_layout();
 
+    for (let tc of tabsContainers) {
+        if (tc.firstElementChild && tc.firstElementChild.tagName == "A") {
+            tc.firstElementChild.remove();
+        }
     }
-}
 
+
+    tabsContainer.insertAdjacentHTML("afterBegin", '<a href="/"><img class="logo" src="/global/images/logo.png"></a>');
+    document.getElementsByClassName("logo")[0].onload = () => tab_cover_layout();
+
+}
 function start_test_result_layout() {
     let testResults = document.getElementsByClassName("output");
     for (let testResult of testResults) {
@@ -766,8 +772,6 @@ function bind_tag_drag() {
             
 
         }
- 
-
 
         currentTab.style = null;
 
@@ -849,6 +853,14 @@ function bind_tag_drag() {
     function mouse_move(de, tab, page, startPos, startOffset) {
         let distance = Math.hypot(de.clientX - startPos.x, de.clientY - startPos.y);
         if (distance >= 20) {
+            if (Array.from(page.parentElement.parentElement.parentElement.children).filter(el => el.classList.contains("window")).length == 1) {
+                if (page.parentElement.parentElement.parentElement.parentElement.parentElement.id != "maincontent") {
+                    if (tab.parentElement.children.length == 1) {
+                        return;
+                    }
+                }
+            }
+
             let beforeWidth = page.offsetWidth;
             let beforeHeight = page.offsetHeight;
 
@@ -1445,14 +1457,14 @@ function set_test_results(resultInfo, resultsDiv) {
                             let bCode = make_element("code")
                             bCode.innerText = failInfo[2];
                             setResultInfo.appendChild(aCode);
-                            setResultInfo.innerHTML += " " + failInfo[1] + " ";
+                            setResultInfo.innerHTML += " <span class='fail-info'>" + failInfo[1] + "</span> ";
                             setResultInfo.appendChild(bCode);
                             
                         } else if (failInfo.length == 2) {
                             let xCode = make_element("code") 
                             xCode.innerText = failInfo[0];
                             setResultInfo.appendChild(xCode);
-                            setResultInfo.innerHTML += " " + failInfo[1] + " ";
+                            setResultInfo.innerHTML += " <span class='fail-info'>" + failInfo[1] + "</span> ";
                         }
 
 

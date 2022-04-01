@@ -2,47 +2,40 @@
 import json
 
 import random
-from solution import ree
+from solution import fizz_buzz
 import cr_test
 
 def actual_solution(n):
-    result = []
-    for x in range(n):
-        result.append("ree")
-    return result
+    answer = []
 
-randomPositive = []
-randomNegative = []
+    for i in range(1, n + 1):
 
-for x in range(20):
-    randomPositive.append(random.randint(0, 100))
+        divisible_by_3 = (i % 3 == 0)
+        divisible_by_5 = (i % 5 == 0)
 
-for x in range(5):
-    randomNegative.append(random.randint(-10, 0))
+        if divisible_by_3 and divisible_by_5:
+            answer.append("FizzBuzz")
+        elif divisible_by_3:
+            answer.append("Fizz")
+        elif divisible_by_5:
+            answer.append("Buzz")
+        else:
+            answer.append(i)
+
+    return answer
 
 
-class ReeSubmissionTests(cr_test.TestGroup):
-    def test_random_positive(self):
-        for randomInput in randomPositive:
+randomInputs = []
+for x in range(100):
+    randomInputs.append(random.randint(1, 50))
+
+class SubmissionTests(cr_test.TestGroup):
+    def test_random_inputs(self):
+        for randomInput in randomInputs:
             self.assert_equal(self, 
-                                ree(randomInput), 
+                                fizz_buzz(randomInput), 
                                 actual_solution(randomInput)
                             )
-
-    def test_random_negative(self):
-        for randomInput in randomNegative:
-            self.assert_equal(self, 
-                                ree(randomInput), 
-                                actual_solution(randomInput)
-                            )
-    
-    def test_zero(self):
-        self.assert_equal(self, 
-                            ree(0), 
-                            actual_solution(0)
-                        )
-
-
         
 
-print("PaPmAFvQBB", json.dumps(cr_test.TestGroup._TestGroup__run()))
+print("RUvyqpOHw7", json.dumps(cr_test.TestGroup._TestGroup__run()))

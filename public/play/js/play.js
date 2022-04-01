@@ -1138,6 +1138,13 @@ function bind_tag_drag() {
     function mouse_move(de, tab, page, startPos, startOffset) {
         let distance = Math.hypot(de.clientX - startPos.x, de.clientY - startPos.y);
         if (distance >= 20) {
+            if (Array.from(page.parentElement.parentElement.parentElement.children).filter(el => el.classList.contains("window")).length == 1) {
+                if (page.parentElement.parentElement.parentElement.parentElement.parentElement.id != "maincontent") {
+                    if (tab.parentElement.children.length == 1) {
+                        return;
+                    }
+                }
+            }
             let beforeWidth = page.offsetWidth;
             let beforeHeight = page.offsetHeight;
 
@@ -1852,15 +1859,16 @@ function set_test_results(resultInfo, resultsDiv) {
                             let bCode = make_element("code")
                             bCode.innerText = failInfo[2];
                             setResultInfo.appendChild(aCode);
-                            setResultInfo.innerHTML += " " + failInfo[1] + " ";
+                            setResultInfo.innerHTML += " <span class='fail-info'>" + failInfo[1] + "</span> ";
                             setResultInfo.appendChild(bCode);
                             
                         } else if (failInfo.length == 2) {
                             let xCode = make_element("code") 
                             xCode.innerText = failInfo[0];
                             setResultInfo.appendChild(xCode);
-                            setResultInfo.innerHTML += " " + failInfo[1] + " ";
+                            setResultInfo.innerHTML += " <span class='fail-info'>" + failInfo[1] + "</span> ";
                         }
+
 
 
 
