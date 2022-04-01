@@ -43,6 +43,11 @@ function makePost(sql, callback=null) {
     });
 }
 
+function sqlSafe(text) {
+    text = text.toString();
+	return text.replace(/'/g, "''").replace(/\\/g, "\\\\");
+}
+
 app.use(express.static("public"));
 app.use('/*/monaco-editor', express.static('public/global/monaco-editor'));
 app.use('/join/*', express.static('public/play.html'));
@@ -95,7 +100,7 @@ app.get("/play/:challengeID", (req, res) => {
     let challengeID = req.params.challengeID;
     if (!challengeID) return res.sendFile(path.join(__dirname, '..', 'public', 'nochallenge.html'));
 
-    makePost(`SELECT * FROM challenges WHERE id='${challengeID}'`, (result) => {
+    makePost(`SELECT * FROM challenges WHERE id='${sqlSafe(challengeID)}'`, (result) => {
         if (!result.length) return res.sendFile(path.join(__dirname, '..', 'public', 'nochallenge.html'));
         return res.sendFile(path.join(__dirname, '..', 'public', 'play.html'))
 
@@ -322,7 +327,7 @@ class SocketHandler {
             totalTime: null
         }
 
-        makePost(`SELECT submissionTests FROM challenges WHERE id='${challengeID}'`, (result) => {
+        makePost(`SELECT submissionTests FROM challenges WHERE id='${sqlSafe(challengeID)}'`, (result) => {
             if (!result.length) return;
 
             let submissionTests = result[0].submissionTests;
@@ -386,7 +391,7 @@ class SocketHandler {
             })
         }
 
-        makePost(`SELECT * FROM challenges WHERE id='${rooms[roomID].challengeID}'`, (result) => {
+        makePost(`SELECT * FROM challenges WHERE id='${sqlSafe(rooms[roomID].challengeID)}'`, (result) => {
             if (!result.length) return callback({
                 error: "Challenge doesn't exist"
             });
@@ -477,7 +482,7 @@ class SocketHandler {
     }
 
     handle_challenge_info(challengeID, callback) {
-        makePost(`SELECT * FROM challenges WHERE id='${challengeID}'`, (result) => {
+        makePost(`SELECT * FROM challenges WHERE id='${sqlSafe(challengeID)}'`, (result) => {
             if (!result.length) return callback({
                 error: "Challenge doesn't exist",
                 challengeInfo: null
@@ -537,7 +542,7 @@ class SocketHandler {
         
             // currentChallenges[currentID] = info;
 
-            makePost(`INSERT INTO challenges (id, title, instructions, exampleTests, submissionTests, initialSolution) VALUES ('${currentID}', '${info.title}', '${info.instructions}', '${info.exampleTests}', '${info.submissionTests}', '${info.initialSolution}')`, (result) => {
+            makePost(`INSERT INTO challenges (id, title, instructions, exampleTests, submissionTests, initialSolution) VALUES ('${sqlSafe(currentID)}', '${sqlSafe(info.title)}', '${sqlSafe(info.instructions)}', '${sqlSafe(info.exampleTests)}', '${sqlSafe(info.submissionTests)}', '${sqlSafe(info.initialSolution)}')`, (result) => {
                 console.log("Succes creating challenge!")
                 return callback({
                     error: null,
